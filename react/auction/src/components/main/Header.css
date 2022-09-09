@@ -1,0 +1,24 @@
+.Customheader {
+    height: 100%;
+}
+
+.navbar-nav > li > .dropdown-menu {
+    background-color: #097981;
+}
+
+.dropdown-menu > li > a:hover {
+    background-image: none;
+    background-color: rgb(13, 161, 219);
+}
+
+.CustomNavbar {
+    background-color: rgb(12, 117, 95);
+}
+
+.dropdown-menu[data-bs-popper] {
+    max-width: 10rem;
+}
+
+.active {
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+}

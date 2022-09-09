@@ -1,0 +1,25 @@
+.SignUpPage {
+    background-image: linear-gradient(to top, #099043, #008b66, #00847f, #007b8c, #0b718c);
+    height: 100vh;
+}
+
+.MyRow {
+    min-height: 3rem;
+}
+
+#RegisterButton {
+    background-color: #618aac;
+    color: floralwhite;
+    border: none;
+}
+
+
+#SignUpCard {
+    background-color: rgb(33, 46, 39);
+    border-radius: 7%;
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;
+}
+
+.shadow-button {
+    box-shadow: 0px 0px 2px #fff;
+}

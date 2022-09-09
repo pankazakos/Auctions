@@ -1,0 +1,38 @@
+.homepage {
+    height: 100%;
+}
+
+.justify-text {
+    text-align: justify;
+}
+
+.CustomHeader {
+    height: 7rem;
+}
+
+@media (min-width: 768px){
+.CustomFooter {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1030;
+    height: 9rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .CustomFooter {
+        height: 20rem;
+
+    }
+}
+
+#body {
+    padding-bottom: 10rem;
+}
+
+::selection {
+    background-color: #33865B;
+    color: floralwhite;
+}
