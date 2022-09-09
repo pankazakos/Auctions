@@ -1,0 +1,18 @@
+.PendingPage {
+    background-image: linear-gradient(to top, #099043, #008b66, #00847f, #007b8c, #0b718c);
+    height: 100vh;
+}
+
+
+.custom-text {
+    position: absolute;
+    color: floralwhite;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* bottom: 50%; */
+}
+
+.link {
+    color: rgb(201, 193, 193);
+}
