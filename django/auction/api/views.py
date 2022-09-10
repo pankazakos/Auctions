@@ -61,12 +61,31 @@ class GetUser(generics.RetrieveAPIView):
 
 
 # Register new user
-class CreateUser(generics.CreateAPIView):
+class usercreate(generics.CreateAPIView):
 
     permission_classes = [permissions.AllowAny]
 
     serializer_class = serializers.RegisterUserSerializer
     queryset = models.CustomUser.objects.all()
+
+class CreateUser(APIView):
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        obj = {"UserID": request.data['username']}
+
+        obj.update(request.data)
+
+        ser = serializers.RegisterUserSerializer(data=obj)
+
+        if(ser.is_valid()):
+            ser.save()
+        else:
+            print(ser.errors)
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("User created", status=status.HTTP_200_OK)
 
 
 # List users that have not been approved yet
@@ -86,29 +105,21 @@ class CreateItem(APIView):
 
     def post(self, request):
 
-        obj = {'ItemID': '1043374545'}
-
         catidlst = list()
         for i in range(len(request.data['Categories'])):
             catidlst.append(models.Category.objects.get_or_create(Name=request.data['Categories'][i])[0].id)
 
-        obj.update(request.data)
+        obj = dict((request.data))
         obj.update({"Seller": models.CustomUser.objects.get(username=request.user).id})
         obj['Categories'] = catidlst
 
-        serializer = serializers.ItemSerializer(data=obj)
+        ser = serializers.ItemSerializer(data=obj)
 
-        if (serializer.is_valid()):
-            serializer.save()
+        if (ser.is_valid()):
+            ser.save()
 
         else:
-            print(serializer.errors)
-            if (str(serializer.errors['ItemID'][0]) == "item with this ItemID already exists."):
-                obj['ItemID'] = '144325'
-                serializer = serializers.ItemSerializer(data=obj)
-                if(serializer.is_valid()):
-                    serializer.save()
-                    return Response("created", status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            print(ser.errors)
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response("created", status=status.HTTP_200_OK)
+        return Response("Item created", status=status.HTTP_200_OK)

@@ -7,7 +7,8 @@ from django.core.validators import MinLengthValidator
 
 
 class CustomUser(AbstractUser):
-    # Inherited fields: id, Username, Password, first_name, last_name, last_login, is_superuser, is_staff, is_active, date_joined
+    # Inherited fields: id, username, password, first_name, last_name, last_login, is_superuser, is_staff, is_active, date_joined
+    UserId = models.CharField(unique=True, max_length=150)
     # override email to make it unique
     email = models.EmailField(unique=True)
     is_approved = models.BooleanField(default=False)
@@ -27,9 +28,9 @@ class Category(models.Model):
 
 
 class Item(models.Model):
-    ItemID = models.CharField(primary_key=True, max_length=20)
+    ItemID = models.BigAutoField(primary_key=True)
     Name = models.CharField(max_length=100)
-    Categories = models.ManyToManyField(Category)
+    categories = models.ManyToManyField(Category)
     Currently = models.IntegerField()
     Buy_Price = models.IntegerField(null=True)
     First_Bid = models.IntegerField()

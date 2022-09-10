@@ -125,7 +125,7 @@ export const SignUp = () => {
     event.preventDefault();
     if (ValidateForm()) {
       axios
-        .post("/api/create/user", {
+        .post("/api/create/user/", {
           password: hashedPassword,
           username: username,
           first_name: fname,
