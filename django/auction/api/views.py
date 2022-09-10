@@ -61,12 +61,6 @@ class GetUser(generics.RetrieveAPIView):
 
 
 # Register new user
-class usercreate(generics.CreateAPIView):
-
-    permission_classes = [permissions.AllowAny]
-
-    serializer_class = serializers.RegisterUserSerializer
-    queryset = models.CustomUser.objects.all()
 
 class CreateUser(APIView):
 
@@ -106,12 +100,14 @@ class CreateItem(APIView):
     def post(self, request):
 
         catidlst = list()
-        for i in range(len(request.data['Categories'])):
-            catidlst.append(models.Category.objects.get_or_create(Name=request.data['Categories'][i])[0].id)
+        for i in range(len(request.data['categories'])):
+            catobj = models.Category.objects.get_or_create(
+                Name=request.data['categories'][i])
+            catidlst.append(catobj[0].id)
 
         obj = dict((request.data))
         obj.update({"Seller": models.CustomUser.objects.get(username=request.user).id})
-        obj['Categories'] = catidlst
+        obj['categories'] = catidlst
 
         ser = serializers.ItemSerializer(data=obj)
 

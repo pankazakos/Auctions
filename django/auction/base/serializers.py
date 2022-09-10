@@ -48,17 +48,15 @@ class ItemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         catobjs = list()
-        for i in range(len(validated_data['Categories'])):
+        for i in range(len(validated_data['categories'])):
             catobjs.append(models.Category.objects.get_or_create(
-                Name=validated_data['Categories'][i])[0])
+                Name=validated_data['categories'][i])[0])
 
-        validated_data.pop('Categories')
-        print(validated_data)
+        validated_data.pop('categories')
         item = models.Item.objects.create(**validated_data)
-        print("hello")
 
         for obj in catobjs:
-            item.Categories.add(obj)
+            item.categories.add(obj)
         return item
 
 
