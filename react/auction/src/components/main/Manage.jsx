@@ -2,16 +2,42 @@ import React from "react";
 import "./Manage.css";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import axios from "axios";
 
 const SubmitModal = (event) => {
   event.preventDefault();
-  console.log("hello");
+  axios.post(
+    "api/create/item/",
+    {
+      Name: event.target.InpName.value,
+      Buy_Price: parseFloat(event.target.InpBuyPrice.value),
+      First_Bid: parseFloat(event.target.InpFirstBid.value),
+      Currently: parseFloat(event.target.InpFirstBid.value),
+      Number_Of_Bids: "0",
+      categories: event.target.InpCategories.value.split(","),
+      Description: event.target.InpDescription.value,
+    },
+    {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("access_token"),
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+    }
+  ).then((response) => {
+    alert("Item succesfully created");
+  }).catch((error) => {
+    console.log(error);
+  });
 };
 
 export const Manage = () => {
   return (
     <div className="Managepage">
       <Header page="Manage" />
+      {/* <div className="alert alert-success col-10 offset-1" role="alert">
+        Item succesfully created
+      </div> */}
       <div
         className="row d-grid btn btn-success col-md-2 col-4 m-auto"
         data-bs-toggle="modal"
@@ -19,6 +45,7 @@ export const Manage = () => {
       >
         Add new Item
       </div>
+
       <div
         className="modal fade"
         id="exampleModal"
@@ -42,77 +69,63 @@ export const Manage = () => {
             <div className="modal-body">
               <form onSubmit={SubmitModal} id="ManageForm">
                 <div className="row">
-                  <div className="col-md-9 col-12">
+                  <div className="col-md-10 col-12">
                     <div className="form-floating">
                       <input
                         type="text"
-                        id="Nameinp"
+                        id="InpName"
                         className="form-control"
                         placeholder="Name"
                       />
-                      <label htmlFor="Nameinp" className="form-label ms-1">
+                      <label htmlFor="InpName" className="form-label ms-1">
                         Name
                       </label>
                     </div>
                   </div>
                 </div>
                 <div className="row mt-3">
-                  <div className="col-md-3 col-12">
+                  <div className="col-md-5 col-12">
                     <div className="form-floating">
                       <input
                         type="number"
                         step="0.01"
                         min="0.01"
-                        id="BuyPriceinp"
+                        id="InpBuyPrice"
                         className="form-control"
                         placeholder="Buy Price"
                       />
-                      <label htmlFor="BuyPriceinp" className="form-label ms-1">
+                      <label htmlFor="InpBuyPrice" className="form-label ms-1">
                         Buy Price
                       </label>
                     </div>
                   </div>
-                  <div className="col-md-3 col-12 mt-md-0 mt-3">
+                  <div className="col-md-5 col-12 mt-md-0 mt-3">
                     <div className="form-floating">
                       <input
                         type="number"
                         step="0.01"
                         min="0"
-                        id="First_Bidinp"
+                        id="InpFirstBid"
                         className="form-control"
                         placeholder="First Bid"
                       />
-                      <label htmlFor="First_Bidinp" className="form-label ms-1">
+                      <label htmlFor="InpFirstBid" className="form-label ms-1">
                         First Bid
-                      </label>
-                    </div>
-                  </div>
-                  <div className="col-md-3 col-12 mt-md-0 mt-3">
-                    <div className="form-floating">
-                      <input
-                        type="number"
-                        min="1"
-                        id="num_bidsinp"
-                        className="form-control"
-                        placeholder="Number of Bids"
-                      />
-                      <label htmlFor="num_bidsinp" className="form-label ms-1">
-                        Number of Bids
                       </label>
                     </div>
                   </div>
                 </div>
                 <div className="row mt-3">
-                  <div className="col-md-9 col-12">
+                  <div className="col-md-10 col-12">
                     <div className="form-floating">
                       <input
                         type="text"
-                        id="categoriesinp"
+                        id="InpCategories"
                         className="form-control"
                         placeholder="Categories"
                       />
                       <label
-                        htmlFor="categoriesinp"
+                        htmlFor="InpCategories"
                         className="form-label ms-1"
                       >
                         Categories
@@ -122,17 +135,17 @@ export const Manage = () => {
                   <div className="col-12 mt-1">(Separate with commas)</div>
                 </div>
                 <div className="row mt-3">
-                  <div className="col-md-9 col-12">
+                  <div className="col-md-10 col-12">
                     <div className="form-floating">
                       <textarea
                         type="textarea"
-                        id="Descriptioninp"
+                        id="InpDescription"
                         className="form-control"
                         placeholder="Description"
                         style={{ height: "12rem" }}
                       ></textarea>
                       <label
-                        htmlFor="Descriptioninp"
+                        htmlFor="InpDescription"
                         className="form-label ms-1"
                       >
                         Description
