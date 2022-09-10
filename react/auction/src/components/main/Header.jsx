@@ -43,6 +43,10 @@ export const Header = (props) => {
     }
   }, [active]);
 
+  const removeGuest = () =>{
+    sessionStorage.removeItem("role");
+  };
+
   return (
     <div className="CustomHeader">
       <div className="container">
@@ -78,36 +82,51 @@ export const Header = (props) => {
                   <h4>Browse</h4>
                 </Link>
               </li>
-              <li className="nav-iteem col-4 ms-3 ms-lg-0 me-sm-5">
-                <Link to={"/Manage"} className={activeClass.manage}>
-                  <h4>Manage</h4>
-                </Link>
-              </li>
+              {/* Display Manage only to logged in users and not guests */}
+              {AuthData.is_LoggedIn ? (
+                <li className="nav-iteem col-4 ms-3 ms-lg-0 me-sm-5">
+                  <Link to={"/Manage"} className={activeClass.manage}>
+                    <h4>Manage</h4>
+                  </Link>
+                </li>
+              ) : null}
             </ul>
             <ul className="navbar-nav ms-auto">
               <li className="nav-item dropdown ms-3 ms-lg-0 me-sm-5">
-                <a
-                  className="nav-link dropdown-toggle text-white"
-                  href="/"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style={{ fontSize: "1.5rem" }}
-                >
-                  {AuthData.username}
-                </a>
-
-                <ul className="dropdown-menu" style={{ margin: 0 }}>
-                  <li>
+                {AuthData.is_LoggedIn ? (
+                  <div>
                     <a
-                      className="dropdown-item text-white"
+                      className="nav-link dropdown-toggle text-white"
                       href="/"
-                      onClick={LogoutUser}
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      style={{ fontSize: "1.5rem" }}
                     >
-                      Logout
+                      {AuthData.username}
                     </a>
-                  </li>
-                </ul>
+                    <ul className="dropdown-menu" style={{ margin: 0 }}>
+                      <li>
+                        <a
+                          className="dropdown-item text-white"
+                          href="/"
+                          onClick={LogoutUser}
+                        >
+                          Logout
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                ) : (
+                  <div>
+                    <Link to={"/"} onClick={removeGuest} className="btn btn-primary me-3 Header-btn">
+                      Sign In
+                    </Link>
+                    <Link to={"/SignUp"} onClick={removeGuest} className="btn btn-primary Header-btn">
+                      Sign Up
+                    </Link>
+                  </div>
+                )}
               </li>
             </ul>
           </div>
