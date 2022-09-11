@@ -6,6 +6,7 @@ from base import models, serializers
 from rest_framework_simplejwt.views import TokenObtainPairView
 from api.serializers import MyTokenObtainPairSerializer
 from rest_framework.views import APIView
+import re
 
 # Custom View for api/token in order to return tokens only to approved users
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -54,7 +55,7 @@ class CreateUser(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        obj = {"UserID": request.data['username']}
+        obj = {"UserId": request.data['username']}
 
         obj.update(request.data)
 
@@ -111,11 +112,30 @@ class CreateItem(APIView):
 class ListInactiveItems(APIView):
 
     permission_classes = [permissions.IsAuthenticated]
-
+ 
     def get(self, request):
-        queryset =  models.Item.objects.filter(Seller=request.user, Number_Of_Bids=0)
-        for item in queryset:
-            print(item.Name)
-            print(type(item.categories))
+        itemqueryset =  models.Item.objects.filter(Seller=request.user, Number_Of_Bids=0)
+        objlst = list()
+        print(request.user.UserId)
+        for item in itemqueryset:
+            obj = {"Name": None, "categories": None, "Currently": None, "Buy_Price": None, 
+            "First_Bid": None, "Number_Of_Bids": None, "Started": None, "Ends": None,
+            "Seller": None, "Description": None}
+            obj['Name'] = item.Name
+            catqueryset = item.categories.all()
+            catlst = list()
+            for cat in catqueryset:
+                catId = int(re.findall(r'\b\d+\b', cat.Name)[0])
+                catlst.append(models.Category.objects.get(id=catId).Name)
+            obj['categories'] = catlst
+            obj['Currently'] = item.Currently
+            obj['Buy_Price'] = item.Buy_Price
+            obj['First_Bid'] = item.First_Bid
+            obj['Number_Of_Bids'] = item.Number_Of_Bids
+            obj['Started'] = item.Started
+            obj['Ends'] = item.Ends
+            obj['Seller'] = request.user.UserId
+            obj['Description'] = item.Description
+            objlst.append(obj)
 
-        return Response("Ok", status=status.HTTP_200_OK)
+        return Response(objlst, status=status.HTTP_200_OK)

@@ -6,6 +6,8 @@ import axios from "axios";
 
 const SubmitModal = (event) => {
   event.preventDefault();
+  let categories = event.target.InpCategories.value.split(",");
+  Object.keys(categories).forEach((key) => {categories[key] = categories[key].trim()});
   axios.post(
     "api/create/item/",
     {
@@ -14,7 +16,7 @@ const SubmitModal = (event) => {
       First_Bid: parseFloat(event.target.InpFirstBid.value),
       Currently: parseFloat(event.target.InpFirstBid.value),
       Number_Of_Bids: "0",
-      categories: event.target.InpCategories.value.split(","),
+      categories: categories,
       Description: event.target.InpDescription.value,
     },
     {
