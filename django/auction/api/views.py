@@ -1,10 +1,4 @@
-from email import message
-from http import HTTPStatus
-from tokenize import Name
 from rest_framework import status
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.permissions import BasePermission
@@ -14,16 +8,13 @@ from api.serializers import MyTokenObtainPairSerializer
 from rest_framework.views import APIView
 
 # Custom View for api/token in order to return tokens only to approved users
-
-
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
 
 # API for users
 
 # Custom permission
-
-
 class UserPermission(BasePermission):
     message = "You don't have access on this account's information"
 
@@ -31,8 +22,6 @@ class UserPermission(BasePermission):
         return obj == request.user
 
 # Display users
-
-
 class ListAllUsers(generics.ListAPIView):
 
     permission_classes = [permissions.IsAdminUser]
@@ -49,9 +38,8 @@ class ApproveUsers(generics.UpdateAPIView):
     queryset = models.CustomUser.objects.filter(
         is_approved=False, is_superuser=False)
 
+
 # Get individual user by id
-
-
 class GetUser(generics.RetrieveAPIView):
 
     permission_classes = [UserPermission]
@@ -61,7 +49,6 @@ class GetUser(generics.RetrieveAPIView):
 
 
 # Register new user
-
 class CreateUser(APIView):
 
     permission_classes = [permissions.AllowAny]
@@ -119,3 +106,16 @@ class CreateItem(APIView):
             return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response("Item created", status=status.HTTP_200_OK)
+
+
+class ListInactiveItems(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        queryset =  models.Item.objects.filter(Seller=request.user, Number_Of_Bids=0)
+        for item in queryset:
+            print(item.Name)
+            print(type(item.categories))
+
+        return Response("Ok", status=status.HTTP_200_OK)

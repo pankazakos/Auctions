@@ -25,9 +25,11 @@ const SubmitModal = (event) => {
       },
     }
   ).then((response) => {
+    console.log(response)
     alert("Item succesfully created");
   }).catch((error) => {
     console.log(error);
+    alert("Failed to create new item");
   });
 };
 
@@ -35,9 +37,6 @@ export const Manage = () => {
   return (
     <div className="Managepage">
       <Header page="Manage" />
-      {/* <div className="alert alert-success col-10 offset-1" role="alert">
-        Item succesfully created
-      </div> */}
       <div
         className="row d-grid btn btn-success col-md-2 col-4 m-auto"
         data-bs-toggle="modal"
