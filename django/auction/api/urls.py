@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import ApproveUsers, CreateItem, CreateUser, GetUser, ListAllUsers, ListInactiveItems, ListPendingUsers
+from api.views import ApproveUsers, CreateItem, CreateUser, GetUser, ListActiveItems, ListAllUsers, ListInactiveItems, ListPendingUsers
 
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
     path('users/approve/<int:pk>', ApproveUsers.as_view(), name='ApproveUsers'),
     path('create/item/', CreateItem.as_view(), name='CreateItem'),
     path('list/items/inactive', ListInactiveItems.as_view(), name='ListInactiveItems'),
+    path('list/items/active', ListActiveItems.as_view(), name="ListAcriveItems"),
 ]
