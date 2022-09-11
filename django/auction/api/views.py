@@ -139,3 +139,35 @@ class ListInactiveItems(APIView):
             objlst.append(obj)
 
         return Response(objlst, status=status.HTTP_200_OK)
+
+
+class ListActiveItems(APIView):
+        
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        itemqueryset =  models.Item.objects.filter(Seller=request.user).exclude(Number_Of_Bids=0)
+        objlst = list()
+        print(request.user.UserId)
+        for item in itemqueryset:
+            obj = {"Name": None, "categories": None, "Currently": None, "Buy_Price": None, 
+            "First_Bid": None, "Number_Of_Bids": None, "Started": None, "Ends": None,
+            "Seller": None, "Description": None}
+            obj['Name'] = item.Name
+            catqueryset = item.categories.all()
+            catlst = list()
+            for cat in catqueryset:
+                catId = int(re.findall(r'\b\d+\b', cat.Name)[0])
+                catlst.append(models.Category.objects.get(id=catId).Name)
+            obj['categories'] = catlst
+            obj['Currently'] = item.Currently
+            obj['Buy_Price'] = item.Buy_Price
+            obj['First_Bid'] = item.First_Bid
+            obj['Number_Of_Bids'] = item.Number_Of_Bids
+            obj['Started'] = item.Started
+            obj['Ends'] = item.Ends
+            obj['Seller'] = request.user.UserId
+            obj['Description'] = item.Description
+            objlst.append(obj)
+
+        return Response(objlst, status=status.HTTP_200_OK)
