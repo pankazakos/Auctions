@@ -33,8 +33,8 @@ const SubmitModal = (event) => {
       }
     )
     .then((response) => {
-      console.log(response);
       alert("Item succesfully created");
+      window.location.reload(false);
     })
     .catch((error) => {
       console.log(error);
@@ -55,7 +55,6 @@ export const Manage = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
         setItems(response.data);
       })
       .catch((error) => {
@@ -63,14 +62,35 @@ export const Manage = () => {
       });
   }, [setItems]);
 
+  const DeleteItem = (id) => {
+    axios
+      .delete("api/delete/item/" + id, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      })
+      .then((response) => {
+        alert("Successfully deleted item");
+        window.location.reload(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Failed to delete item");
+      });
+  };
+
   const DisplayItem = (item) => {
     let tempCategories = "";
     let tempItem = JSON.parse(JSON.stringify(item));
+    delete tempItem['ItemID'];
     tempItem.categories.map((cat, i) => {
       tempCategories += cat;
-      if (tempItem.categories.length - 1 != i) {
+      if (tempItem.categories.length - 1 !== i) {
         tempCategories += ", ";
       }
+      return null;
     });
     tempItem.categories = tempCategories;
     tempItem.Buy_Price = "$" + tempItem.Buy_Price;
@@ -87,11 +107,10 @@ export const Manage = () => {
       <div>
         {Object.keys(tempItem).map((key, i) => (
           <div className="row">
-            <div className="col-4">{key}:</div>
-            <div className="col-4">{tempItem[key]}</div>
+            <div className="col-6 col-sm-4">{key}:</div>
+            <div className="col-6 col-sm-4">{tempItem[key]}</div>
           </div>
         ))}
-        <hr className="mt-3"></hr>
       </div>
     );
   };
@@ -238,8 +257,21 @@ export const Manage = () => {
       </div>
       <div className="container">
         <div className="row mt-5">
-          {items.map((item) => (
-            <div key={item.id}>{DisplayItem(item)}</div>
+          {items.map((item, i) => (
+            <div key={item.ItemID}>
+              <div className="col-5 text-center" style={{ fontWeight: "bold" }}>
+                Item {i + 1}
+              </div>
+              {DisplayItem(item)}
+              <div className="row">
+                <div className="col-sm-6 col-12 offset-sm-6 mt-2">
+                  <div className="btn btn-primary col-sm-3 col-5">Finalize</div>
+                  <div className="btn btn-warning col-sm-2 col-3 ms-1">Edit</div>
+                  <div className="btn btn-danger col-sm-2 col-4 ms-1" onClick={() => DeleteItem(item.ItemID)}>Delete</div>
+                </div>
+              </div>
+              <hr className="mt-3"></hr>
+            </div>
           ))}
         </div>
       </div>
