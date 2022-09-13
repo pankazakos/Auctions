@@ -36,7 +36,8 @@ class Item(models.Model):
     First_Bid = models.FloatField()
     Number_Of_Bids = models.IntegerField()
     Started = models.DateTimeField(auto_now_add=True)
-    Ends = models.DateTimeField(auto_now_add=True)
+    Ends = models.DateTimeField(null=True)
+    Active = models.BooleanField(default=False)
     Seller = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     Description = models.TextField()
 

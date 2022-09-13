@@ -16,7 +16,6 @@ export const Header = (props) => {
   });
 
   const active = props.page;
-  console.log(active);
 
   useEffect(() => {
     if (active === "Home") {

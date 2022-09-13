@@ -4,12 +4,40 @@ import { useEffect } from "react";
 import { useState } from "react";
 import "./ApproveUsers.css";
 
+const DisplayUser = (user) => {
+  let tempUser = JSON.parse(JSON.stringify(user));
+  if (tempUser.Latitude == null || tempUser.Longitude == null) {
+    tempUser.Latitude = "Null";
+    tempUser.Longitude = "Null";
+  }
+  tempUser.Phone_Number =
+    "+" +
+    tempUser.Phone_Number.slice(0, 2) +
+    " " +
+    tempUser.Phone_Number.slice(2, 12);
+  tempUser.is_approved = String(tempUser.is_approved);
+  tempUser.is_staff = String(tempUser.is_staff);
+  tempUser.is_superuser = String(tempUser.is_superuser);
+  console.log(tempUser);
+
+  return (
+    <div className="row mt-3">
+      {Object.keys(tempUser).map((key, i) => (
+        <div key={i} className="row">
+          <div className="col-6 col-sm-4">{key}:</div>
+          <div className="col-6 col-sm-4">{tempUser[key]}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const ApproveUsers = () => {
   const [users, SetUsers] = useState([]);
 
   useEffect(() => {
     axios
-      .get("../api/list/users", {
+      .get("../api/list/users/", {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("access_token"),
           "Content-Type": "application/json",
@@ -17,6 +45,7 @@ export const ApproveUsers = () => {
         },
       })
       .then((response) => {
+        console.log(response.data);
         SetUsers(response.data);
       })
       .catch((error) => {
@@ -47,34 +76,23 @@ export const ApproveUsers = () => {
   return (
     <div className="ApproveUserspage">
       <div className="container">
-        <hr className="mt-auto col-8"></hr>
-        {users.map((user) => (
-          <div key={user.id}>
-            <div className="row">
-              <div className="col-2">
-                {Object.keys(user).map((key, i) => (
-                  <div key={i}>{key}:</div>
-                ))}
+        <div className="row">
+          {users.map((user) => (
+            <div key={user.id}>
+              {DisplayUser(user)}
+              <div
+                className="d-grid btn btn-success col-4 mt-3"
+                onClick={() => {
+                  approve(user.id);
+                }}
+              >
+                Approve
               </div>
-              <div className="col-4">
-                {Object.values(user).map((field, i) => (
-                  <div key={i}>{field}</div>
-                ))}
-              </div>
+              <hr></hr>
             </div>
-            <div
-              className="d-grid btn btn-success col-4 mt-3"
-              onClick={() => {
-                approve(user.id);
-              }}
-            >
-              Approve
-            </div>
-            <hr className="col-8"></hr>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-      <hr className="m-auto col-8"></hr>
     </div>
   );
 };
