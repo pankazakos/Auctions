@@ -22,6 +22,13 @@ class UserPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj == request.user
 
+
+class ItemPermission(BasePermission):
+    message = "You don't have access on this Item"
+
+    def has_object_permission(self, request, view, obj):
+        return obj.Seller == request.user
+
 # Display users
 class ListAllUsers(generics.ListAPIView):
 
@@ -118,9 +125,10 @@ class ListInactiveItems(APIView):
         objlst = list()
         print(request.user.UserId)
         for item in itemqueryset:
-            obj = {"Name": None, "categories": None, "Currently": None, "Buy_Price": None, 
+            obj = {"ItemID": None, "Name": None, "categories": None, "Currently": None, "Buy_Price": None, 
             "First_Bid": None, "Number_Of_Bids": None, "Started": None, "Ends": None,
             "Seller": None, "Description": None}
+            obj['ItemID'] = item.ItemID
             obj['Name'] = item.Name
             catqueryset = item.categories.all()
             catlst = list()
@@ -171,3 +179,10 @@ class ListActiveItems(APIView):
             objlst.append(obj)
 
         return Response(objlst, status=status.HTTP_200_OK)
+
+
+class DeleteItem(generics.DestroyAPIView):
+
+    permission_classes = [ItemPermission]
+    serializer_class = serializers.ItemSerializer
+    queryset = models.Item.objects.all()
