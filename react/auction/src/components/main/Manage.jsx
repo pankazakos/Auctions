@@ -3,39 +3,99 @@ import "./Manage.css";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import axios from "axios";
+import { useState } from "react";
+import { useEffect } from "react";
 
 const SubmitModal = (event) => {
   event.preventDefault();
   let categories = event.target.InpCategories.value.split(",");
-  Object.keys(categories).forEach((key) => {categories[key] = categories[key].trim()});
-  axios.post(
-    "api/create/item/",
-    {
-      Name: event.target.InpName.value,
-      Buy_Price: parseFloat(event.target.InpBuyPrice.value),
-      First_Bid: parseFloat(event.target.InpFirstBid.value),
-      Currently: parseFloat(event.target.InpFirstBid.value),
-      Number_Of_Bids: "0",
-      categories: categories,
-      Description: event.target.InpDescription.value,
-    },
-    {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("access_token"),
-        "Content-Type": "application/json",
-        accept: "application/json",
-      },
-    }
-  ).then((response) => {
-    console.log(response)
-    alert("Item succesfully created");
-  }).catch((error) => {
-    console.log(error);
-    alert("Failed to create new item");
+  Object.keys(categories).forEach((key) => {
+    categories[key] = categories[key].trim();
   });
+  axios
+    .post(
+      "api/create/item/",
+      {
+        Name: event.target.InpName.value,
+        Buy_Price: parseFloat(event.target.InpBuyPrice.value),
+        First_Bid: parseFloat(event.target.InpFirstBid.value),
+        Currently: parseFloat(event.target.InpFirstBid.value),
+        Number_Of_Bids: "0",
+        categories: categories,
+        Description: event.target.InpDescription.value,
+      },
+      {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      }
+    )
+    .then((response) => {
+      console.log(response);
+      alert("Item succesfully created");
+    })
+    .catch((error) => {
+      console.log(error);
+      alert("Failed to create new item");
+    });
 };
 
 export const Manage = () => {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("api/list/items/inactive", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        setItems(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [setItems]);
+
+  const DisplayItem = (item) => {
+    let tempCategories = "";
+    let tempItem = JSON.parse(JSON.stringify(item));
+    tempItem.categories.map((cat, i) => {
+      tempCategories += cat;
+      if (tempItem.categories.length - 1 != i) {
+        tempCategories += ", ";
+      }
+    });
+    tempItem.categories = tempCategories;
+    tempItem.Buy_Price = "$" + tempItem.Buy_Price;
+    tempItem.First_Bid = "$" + tempItem.First_Bid;
+    tempItem.Currently = "$" + tempItem.Currently;
+    let date = tempItem.Started.split("T")[0];
+    let time = tempItem.Started.split("T")[1].split(".")[0];
+    tempItem.Started = date + ", " + time;
+    if (tempItem.Ends == null) {
+      tempItem.Ends = "Null";
+    }
+
+    return (
+      <div>
+        {Object.keys(tempItem).map((key, i) => (
+          <div className="row">
+            <div className="col-4">{key}:</div>
+            <div className="col-4">{tempItem[key]}</div>
+          </div>
+        ))}
+        <hr className="mt-3"></hr>
+      </div>
+    );
+  };
+
   return (
     <div className="Managepage">
       <Header page="Manage" />
@@ -168,6 +228,7 @@ export const Manage = () => {
                 type="submit"
                 form="ManageForm"
                 className="btn btn-success"
+                data-bs-dismiss="modal"
               >
                 Add Item
               </button>
@@ -175,6 +236,14 @@ export const Manage = () => {
           </div>
         </div>
       </div>
+      <div className="container">
+        <div className="row mt-5">
+          {items.map((item) => (
+            <div key={item.id}>{DisplayItem(item)}</div>
+          ))}
+        </div>
+      </div>
+      <div style={{ height: "10rem" }}></div>
       <Footer />
     </div>
   );

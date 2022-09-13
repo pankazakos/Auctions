@@ -114,7 +114,7 @@ class ListInactiveItems(APIView):
     permission_classes = [permissions.IsAuthenticated]
  
     def get(self, request):
-        itemqueryset =  models.Item.objects.filter(Seller=request.user, Number_Of_Bids=0)
+        itemqueryset =  models.Item.objects.filter(Seller=request.user, Active=False)
         objlst = list()
         print(request.user.UserId)
         for item in itemqueryset:
@@ -146,7 +146,7 @@ class ListActiveItems(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        itemqueryset =  models.Item.objects.filter(Seller=request.user).exclude(Number_Of_Bids=0)
+        itemqueryset =  models.Item.objects.filter(Seller=request.user, Active=True)
         objlst = list()
         print(request.user.UserId)
         for item in itemqueryset:

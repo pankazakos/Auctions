@@ -17,8 +17,6 @@ export const Views = () => {
 
   const isGuest = sessionStorage.getItem("role") ? true : false;
 
-  console.log(AuthData.is_LoggedIn);
-
   return (
       <Routes>
         <Route path="/" element={AuthData.is_LoggedIn || isGuest ? <Home /> : <Login />} />
