@@ -6,7 +6,7 @@ import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
 
-const SubmitModal = (event) => {
+const CreateItem = (event) => {
   event.preventDefault();
   let categories = event.target.InpCategories.value.split(",");
   Object.keys(categories).forEach((key) => {
@@ -44,6 +44,7 @@ const SubmitModal = (event) => {
 
 export const Manage = () => {
   const [items, setItems] = useState([]);
+  const [time, setTime] = useState("");
 
   useEffect(() => {
     axios
@@ -81,10 +82,39 @@ export const Manage = () => {
       });
   };
 
+  const ActivateItem = (id) => {
+    let confirm = window.confirm("Are you sure you want to start the auction?");
+    if (confirm) {
+      axios
+        .put(
+          "api/item/activate/" + id,
+          {
+            Ends: time + "+00:00",
+            Active: true,
+          },
+          {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+              "Content-Type": "application/json",
+              accept: "application/json",
+            },
+          }
+        )
+        .then((response) => {
+          alert("Item auction has started");
+          window.location.reload(false);
+        })
+        .catch((error) => {
+          console.log(error);
+          alert("Failed to start auction")
+        });
+    }
+  };
+
   const DisplayItem = (item) => {
     let tempCategories = "";
     let tempItem = JSON.parse(JSON.stringify(item));
-    delete tempItem['ItemID'];
+    delete tempItem["ItemID"];
     tempItem.categories.map((cat, i) => {
       tempCategories += cat;
       if (tempItem.categories.length - 1 !== i) {
@@ -96,11 +126,16 @@ export const Manage = () => {
     tempItem.Buy_Price = "$" + tempItem.Buy_Price;
     tempItem.First_Bid = "$" + tempItem.First_Bid;
     tempItem.Currently = "$" + tempItem.Currently;
-    let date = tempItem.Started.split("T")[0];
-    let time = tempItem.Started.split("T")[1].split(".")[0];
-    tempItem.Started = date + ", " + time;
-    if (tempItem.Ends == null) {
+    if (tempItem.Started == null) {
+      tempItem.Started = "Null";
       tempItem.Ends = "Null";
+    } else {
+      let sdate = tempItem.Started.split("T")[0];
+      let stime = tempItem.Started.split("T")[1];
+      tempItem.Started = sdate + ", " + stime;
+      let edate = tempItem.Ends.split("T")[0];
+      let etime = tempItem.Ends.split("T")[1];
+      tempItem.Ends = edate + ", " + etime;
     }
 
     return (
@@ -108,7 +143,7 @@ export const Manage = () => {
         {Object.keys(tempItem).map((key, i) => (
           <div className="row">
             <div className="col-6 col-sm-4">{key}:</div>
-            <div className="col-6 col-sm-4">{tempItem[key]}</div>
+            <div className="col-6 col-sm-8">{tempItem[key]}</div>
           </div>
         ))}
       </div>
@@ -121,22 +156,22 @@ export const Manage = () => {
       <div
         className="row d-grid btn btn-success col-md-2 col-4 m-auto"
         data-bs-toggle="modal"
-        data-bs-target="#exampleModal"
+        data-bs-target="#AddItem"
       >
         Add new Item
       </div>
 
       <div
         className="modal fade"
-        id="exampleModal"
+        id="AddItem"
         tabIndex="-1"
-        aria-labelledby="exampleModalLabel"
+        aria-labelledby="AddItemLabel"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-xl">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="exampleModalLabel">
+              <h5 className="modal-title" id="AddItemLabel">
                 Add new item for auction
               </h5>
               <button
@@ -147,7 +182,7 @@ export const Manage = () => {
               ></button>
             </div>
             <div className="modal-body">
-              <form onSubmit={SubmitModal} id="ManageForm">
+              <form onSubmit={CreateItem} id="ManageForm">
                 <div className="row">
                   <div className="col-md-10 col-12">
                     <div className="form-floating">
@@ -256,6 +291,9 @@ export const Manage = () => {
         </div>
       </div>
       <div className="container">
+        <div className="row mt-5" style={{fontSize: "1.5rem"}}>
+          Items not available for auction yet
+        </div>
         <div className="row mt-5">
           {items.map((item, i) => (
             <div key={item.ItemID}>
@@ -264,17 +302,87 @@ export const Manage = () => {
               </div>
               {DisplayItem(item)}
               <div className="row">
-                <div className="col-sm-6 col-12 offset-sm-6 mt-2">
-                  <div className="btn btn-primary col-sm-3 col-5">Finalize</div>
-                  <div className="btn btn-warning col-sm-2 col-3 ms-1">Edit</div>
-                  <div className="btn btn-danger col-sm-2 col-4 ms-1" onClick={() => DeleteItem(item.ItemID)}>Delete</div>
+                <div className="col-sm-6 col-12 mt-4 mb-4">
+                  <div
+                    className="btn btn-primary col-sm-3 col-5"
+                    data-bs-toggle="modal"
+                    data-bs-target="#ActivateItem"
+                  >
+                    Finalize
+                  </div>
+                  <div className="btn btn-warning col-sm-2 col-3 ms-1">
+                    Edit
+                  </div>
+                  <div
+                    className="btn btn-danger col-sm-2 col-4 ms-1"
+                    onClick={() => DeleteItem(item.ItemID)}
+                  >
+                    Delete
+                  </div>
                 </div>
               </div>
               <hr className="mt-3"></hr>
+              <div
+                className="modal fade"
+                id="ActivateItem"
+                tabIndex="-1"
+                aria-labelledby="ActivateItemLabel"
+                aria-hidden="true"
+              >
+                <div className="modal-dialog modal-lg">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title" id="ActivateItemLabel">
+                        Make item public and start auction
+                      </h5>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div className="modal-body">
+                      <div className="row">
+                        <div className="col-6">
+                          <label htmlFor="EndTime">
+                            Choose when auction will end:
+                          </label>
+                        </div>
+                        <div className="col-6">
+                          <input
+                            type="datetime-local"
+                            id="EndTime"
+                            name="EndTime"
+                            onChange={(e) => setTime(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Close
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => ActivateItem(item.ItemID)}
+                      >
+                        Start Auction
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </div>
+
       <div style={{ height: "10rem" }}></div>
       <Footer />
     </div>
