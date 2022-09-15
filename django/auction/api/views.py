@@ -1,3 +1,6 @@
+import datetime
+from dateutil.parser import isoparse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import generics, permissions
@@ -48,12 +51,16 @@ class ApproveUsers(generics.UpdateAPIView):
 
 
 # Get individual user by id
-class GetUser(generics.RetrieveAPIView):
+class GetUser(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-    permission_classes = [UserPermission]
+    def get(self, request, pk):
+        user = models.CustomUser.objects.get(id=pk)
+        userSer = serializers.ListUserSerializer(user)
+        if(not request.user == user):
+            return Response("Forbidden", status=status.HTTP_403_FORBIDDEN)
 
-    serializer_class = serializers.ListUserSerializer
-    queryset = models.CustomUser.objects.all()
+        return Response(userSer.data, status=status.HTTP_200_OK)
 
 
 # Register new user
@@ -123,7 +130,6 @@ class ListInactiveItems(APIView):
     def get(self, request):
         itemqueryset =  models.Item.objects.filter(Seller=request.user, Active=False)
         objlst = list()
-        print(request.user.UserId)
         for item in itemqueryset:
             obj = {"ItemID": None, "Name": None, "categories": None, "Currently": None, "Buy_Price": None, 
             "First_Bid": None, "Number_Of_Bids": None, "Started": None, "Ends": None,
@@ -156,7 +162,6 @@ class ListActiveItems(APIView):
     def get(self, request):
         itemqueryset =  models.Item.objects.filter(Seller=request.user, Active=True)
         objlst = list()
-        print(request.user.UserId)
         for item in itemqueryset:
             obj = {"Name": None, "categories": None, "Currently": None, "Buy_Price": None, 
             "First_Bid": None, "Number_Of_Bids": None, "Started": None, "Ends": None,
@@ -186,3 +191,28 @@ class DeleteItem(generics.DestroyAPIView):
     permission_classes = [ItemPermission]
     serializer_class = serializers.ItemSerializer
     queryset = models.Item.objects.all()
+
+class ActivateItem(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, pk):
+        item = models.Item.objects.get(ItemID=pk, Active=False)
+        if(not request.user == item.Seller):
+            return Response("Forbidden", status=status.HTTP_403_FORBIDDEN)
+
+        dtends = request.data['Ends']
+        dtnow = datetime.datetime.now(tz=timezone.utc)
+        try:
+            parsed_dtends = isoparse(dtends)
+        except:
+            return Response("Date is not in correct format", status=status.HTTP_400_BAD_REQUEST)
+
+        if(parsed_dtends <= dtnow):
+            return Response("End datetime cannot be set to smaller datetime than current", status=status.HTTP_400_BAD_REQUEST)
+
+        item.Started = dtnow
+        item.Ends = parsed_dtends
+        item.Active = True
+        item.save()
+        return Response({"Started": item.Started, "Ends": item.Ends, "Active": item.Active}, status=status.HTTP_200_OK)
