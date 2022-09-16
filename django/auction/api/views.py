@@ -78,7 +78,6 @@ class CreateUser(APIView):
         if(ser.is_valid()):
             ser.save()
         else:
-            print(ser.errors)
             return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response("User created", status=status.HTTP_200_OK)
@@ -117,7 +116,6 @@ class CreateItem(APIView):
             ser.save()
 
         else:
-            print(ser.errors)
             return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response("Item created", status=status.HTTP_200_OK)
@@ -215,4 +213,48 @@ class ActivateItem(APIView):
         item.Ends = parsed_dtends
         item.Active = True
         item.save()
+        
         return Response({"Started": item.Started, "Ends": item.Ends, "Active": item.Active}, status=status.HTTP_200_OK)
+
+class EditItem(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, pk):
+        item = models.Item.objects.get(ItemID=pk)
+        if(request.user != item.Seller):
+            return Response("Forbidden", status=status.HTTP_403_FORBIDDEN)
+        
+        if(request.data['Name'] != ""):
+            item.Name = request.data['Name']
+        
+        categories = request.data['categories']
+        if(categories != ['']):
+            catids = list()
+            for cat in categories:
+                if(cat != ''):
+                    catobj = models.Category.objects.get_or_create(Name=cat)
+                    refobj = models.Category.objects.get_or_create(Name=catobj[0])
+                    catids.append(refobj[0].id)
+                    
+            currcat = models.Category.objects.filter(item=pk)
+            for curr in currcat:
+                item.categories.remove(curr)
+
+            for id in catids:
+                item.categories.add(id)
+
+        if(request.data['Buy_Price'] != None):
+            item.Buy_Price = request.data['Buy_Price']
+
+        first_bid = request.data['First_Bid']
+        if(first_bid != None):
+            item.First_Bid = first_bid
+            item.Currently = first_bid
+
+        if(request.data['Description'] != ""):
+            item.Description = request.data['Description']
+
+        item.save()
+
+        return Response("OK", status=status.HTTP_200_OK)
