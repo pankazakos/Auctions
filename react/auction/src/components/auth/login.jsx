@@ -44,12 +44,12 @@ export const Login = () => {
                     </div>
                     {empty_username ? (
                       <div className="text-white">
-                        *username cannot be empty
+                        *credentials not valid
                       </div>
                     ) : null}
                     {err_credentials ? (
                       <div className="text-white col-10 col-sm-6 mt-1">
-                        *username and password do not belong to any account
+                        *credentials not valid
                       </div>
                     ) : null}
                     <div className="form-floating col-10 col-sm-6 mt-3">

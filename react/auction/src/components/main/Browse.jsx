@@ -5,11 +5,20 @@ import { Footer } from "./Footer";
 import axios from "axios";
 import { useState } from "react";
 
-
 export const Browse = (props) => {
   const [items, setItems] = useState([]);
   const [item, setItem] = useState([]);
+  const [count, setCount] = useState();
+  const [page, setPage] = useState();
   const [loading, setLoading] = useState(true);
+  const [parameters, setParameters] = useState({
+    name: "",
+    cat: "",
+    lprice: "",
+    rprice: "",
+    location: "",
+    parpage: "",
+  });
 
   useEffect(() => {
     if (props.mode === "item") {
@@ -27,12 +36,20 @@ export const Browse = (props) => {
     } else {
       const search = window.location.search;
       const urlpar = new URLSearchParams(search);
-      let page = urlpar.get("page");
+      let parpage = urlpar.get("page");
       let name = urlpar.get("name");
       let cat = urlpar.get("cat");
       let lprice = urlpar.get("lprice");
       let rprice = urlpar.get("rprice");
       let location = urlpar.get("location");
+      setParameters({
+        name: name,
+        cat: cat,
+        lprice: lprice,
+        rprice: rprice,
+        location: location,
+        parpage: parpage,
+      });
       axios
         .get(
           "/api/list/items/all/" +
@@ -47,11 +64,13 @@ export const Browse = (props) => {
             "&location=" +
             location +
             "&page=" +
-            page
+            parpage
         )
         .then((response) => {
           console.log(response);
-          setItems(response.data);
+          setItems(response.data[0].items);
+          setCount(parseInt(response.data[1].count));
+          setPage(parseInt(response.data[2].page));
           setLoading(false);
         })
         .catch((error) => {
@@ -79,7 +98,6 @@ export const Browse = (props) => {
     });
     tempItem.categories = tempCategories;
     tempItem.Buy_Price = "$" + tempItem.Buy_Price;
-    tempItem.First_Bid = "$" + tempItem.First_Bid;
     tempItem.Currently = "$" + tempItem.Currently;
     if (tempItem.Started == null) {
       delete tempItem["Started"];
@@ -94,9 +112,11 @@ export const Browse = (props) => {
     }
 
     return (
-      <div>
+      <div className="row">
         <div
-          className="col-4 offset-4 mb-5 mt-3"
+          className={
+            detail ? "col-4 mb-3 mt-5 offset-2" : "col-4 offset-1 mb-3 mt-5"
+          }
           style={{ fontWeight: "bold" }}
         >
           <a href={"/Browse/item/" + item.ItemID} style={{ color: "inherit" }}>
@@ -104,8 +124,10 @@ export const Browse = (props) => {
           </a>
         </div>
         {Object.keys(tempItem).map((key) => (
-          <div className="row">
-            <div className="col-4 col-sm-3 offset-2">{key}:</div>
+          <div className="row d-flex justify-content-center">
+            <div className={detail ? "col-4 col-sm-2" : "col-4 col-sm-4"}>
+              {key}:
+            </div>
             <div className="col-6 col-sm-6">{tempItem[key]}</div>
           </div>
         ))}
@@ -119,9 +141,9 @@ export const Browse = (props) => {
 
       {props.mode === "item" ? (
         <div className="container">
-          <div className="row">
+          <div className="row d-flex justify-content-center">
             {loading ? null : (
-              <div>
+              <div key={item.ItemID}>
                 {DisplayItem(item, true)}
                 <div className="row mt-5">
                   <div className="col-3 offset-2">
@@ -129,9 +151,9 @@ export const Browse = (props) => {
                       type="number"
                       step="0.01"
                       id="bidinp"
-                      min={item.First_Bid}
+                      min={item.Currently}
                       className="form-control"
-                      placeholder="$"
+                      placeholder={"$ " + item.Currently}
                     />
                   </div>
                   <div className="btn btn-primary col-2">Place Bid</div>
@@ -142,18 +164,232 @@ export const Browse = (props) => {
           <div style={{ height: "20rem" }}></div>
         </div>
       ) : (
-        <div className="container">
-          <div className="row">
-            {items.map((item) => (
-              <div
-                key={item.ItemID}
-                className="col-12 col-md-5 border border-dark me-5 mb-5"
-              >
-                {DisplayItem(item, false)}
-                <div style={{ height: "5rem" }}></div>
-              </div>
-            ))}
-            <div style={{ height: "20rem" }}></div>
+        <div>
+          <div className="container">
+            <div className="row mb-5">
+              <form>
+                <div className="row d-flex justify-content-center">
+                  <div className="col-6 form-floating">
+                    <input
+                      type="text"
+                      id="searchform"
+                      className="form-control"
+                      name="name"
+                      placeholder="Search By Name"
+                    />
+                    <label className="form-label ms-2" htmlFor="searchform">
+                      Search By Name
+                    </label>
+                  </div>
+                  <button type="submit" className="btn btn-primary col-1">
+                    <span className="fa fa-search"></span>
+                  </button>
+                </div>
+                <div className="row mt-4 col-2 m-auto">
+                  <div
+                    className="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#exampleModal"
+                  >
+                    Add filters
+                  </div>
+                </div>
+                <div
+                  className="modal fade"
+                  id="exampleModal"
+                  tabIndex="-1"
+                  aria-labelledby="exampleModalLabel"
+                  aria-hidden="true"
+                >
+                  <div className="modal-dialog">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">
+                          Filters
+                        </h5>
+                        <button
+                          type="button"
+                          className="btn-close"
+                          data-bs-dismiss="modal"
+                          aria-label="Close"
+                        ></button>
+                      </div>
+                      <div className="modal-body">
+                        <div className="form-floating col-10">
+                          <input
+                            type="text"
+                            id="categoriesinp"
+                            className="form-control"
+                            name="cat"
+                            placeholder="categories"
+                          />
+                          <label
+                            className="form-label ms-2"
+                            htmlFor="categoriesinp"
+                          >
+                            categories
+                          </label>
+                          <div className="feedback ms-1">
+                            (separate with commas)
+                          </div>
+                        </div>
+                        <div className="row mt-2">
+                          <div className="col-2" style={{ lineHeight: "70px" }}>
+                            Price:
+                          </div>
+                          <div className="form-floating mt-2 col-4">
+                            <input
+                              type="number"
+                              id="lpriceinp"
+                              className="form-control"
+                              name="lprice"
+                              placeholder="from"
+                            />
+                            <label
+                              className="form-label ms-2"
+                              htmlFor="lpriceinp"
+                            >
+                              From
+                            </label>
+                          </div>
+                          <div className="form-floating mt-2 col-4">
+                            <input
+                              type="number"
+                              id="rpriceinp"
+                              className="form-control"
+                              name="rprice"
+                              placeholder="to"
+                            />
+                            <label
+                              className="form-label ms-2"
+                              htmlFor="rpriceinp"
+                            >
+                              To
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="form-floating mt-4 col-10">
+                          <input
+                            type="text"
+                            id="locationinp"
+                            className="form-control"
+                            name="location"
+                            placeholder="location"
+                          />
+                          <label
+                            className="form-label ms-2"
+                            htmlFor="locationinp"
+                          >
+                            location
+                          </label>
+                        </div>
+                      </div>
+                      <div className="modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          data-bs-dismiss="modal"
+                        >
+                          Close
+                        </button>
+                        <button type="submit" className="btn btn-primary">
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div className="container">
+            <ul className="pagination mb-4 col-11">
+              <div className="ms-auto"></div>
+              {page - 1 >= 1 ? (
+                <li className="page-item">
+                  <a
+                    className="page-link"
+                    href={
+                      "/Browse/?name=" +
+                      parameters.name +
+                      "&cat=" +
+                      parameters.cat +
+                      "&lprice=" +
+                      parameters.lprice +
+                      "&rprice=" +
+                      parameters.rprice +
+                      "&location=" +
+                      parameters.location +
+                      "&page=" +
+                      parseInt(page - 1)
+                    }
+                  >
+                    Previous
+                  </a>
+                </li>
+              ) : null}
+              {Array.from(Array(count), (c, i) => (
+                <li className="page-item">
+                  <a
+                    className={
+                      page === i + 1 ? "page-link active" : "page-link"
+                    }
+                    href={
+                      "/Browse/?name=" +
+                      parameters.name +
+                      "&cat=" +
+                      parameters.cat +
+                      "&lprice=" +
+                      parameters.lprice +
+                      "&rprice=" +
+                      parameters.rprice +
+                      "&location=" +
+                      parameters.location +
+                      "&page=" +
+                      parseInt(i + 1)
+                    }
+                  >
+                    {i + 1}
+                  </a>
+                </li>
+              ))}
+              {page + 1 <= count ? (
+                <li className="page-item">
+                  <a
+                    className="page-link"
+                    href={
+                      "/Browse/?name=" +
+                      parameters.name +
+                      "&cat=" +
+                      parameters.cat +
+                      "&lprice=" +
+                      parameters.lprice +
+                      "&rprice=" +
+                      parameters.rprice +
+                      "&location=" +
+                      parameters.location +
+                      "&page=" +
+                      parseInt(page + 1)
+                    }
+                  >
+                    Next
+                  </a>
+                </li>
+              ) : null}
+            </ul>
+            <div className="row d-flex justify-content-center">
+              {items.map((item) => (
+                <div
+                  key={item.ItemID}
+                  className="col-12 col-md-5 border border-dark me-5 mb-5 tb-color"
+                >
+                  {DisplayItem(item, false)}
+                  <div style={{ height: "5rem" }}></div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
