@@ -1,5 +1,4 @@
 import React from "react";
-import "./Manage.css";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { Modal } from "./Modal";
@@ -45,7 +44,6 @@ const CreateItem = (event) => {
 
 const EditItem = (event, id) => {
   event.preventDefault();
-  console.log(id);
   let categories = event.target.InpCategories.value.split(",");
   Object.keys(categories).forEach((key) => {
     categories[key] = categories[key].trim();
@@ -58,7 +56,6 @@ const EditItem = (event, id) => {
         Buy_Price: parseFloat(event.target.InpBuyPrice.value),
         First_Bid: parseFloat(event.target.InpFirstBid.value),
         Currently: parseFloat(event.target.InpFirstBid.value),
-        // Number_Of_Bids: "0",
         categories: categories,
         Description: event.target.InpDescription.value,
       },
@@ -81,10 +78,35 @@ const EditItem = (event, id) => {
     });
 };
 
+const DeleteItem = (id) => {
+  let confirm = window.confirm(
+    "Are you sure you want to delete selected item?"
+  );
+  if (confirm) {
+    axios
+      .delete("api/delete/item/" + id, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      })
+      .then((response) => {
+        alert("Successfully deleted item");
+        window.location.reload(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Failed to delete item");
+      });
+  }
+};
+
 export const Manage = () => {
   const [InactiveItems, setInactiveItems] = useState([]);
   const [ActiveItems, setActiveItems] = useState([]);
   const [time, setTime] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios
@@ -112,34 +134,15 @@ export const Manage = () => {
       })
       .then((response) => {
         setActiveItems(response.data);
+        setLoading(false);
       })
       .catch((error) => {
         console.log(error);
       });
   }, [setInactiveItems, setActiveItems]);
 
-  const DeleteItem = (id) => {
-    axios
-      .delete("api/delete/item/" + id, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("access_token"),
-          "Content-Type": "application/json",
-          accept: "application/json",
-        },
-      })
-      .then((response) => {
-        alert("Successfully deleted item");
-        window.location.reload(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        alert("Failed to delete item");
-      });
-  };
-
   const ActivateItem = (id) => {
     let confirm = window.confirm("Are you sure you want to start the auction?");
-    console.log(id);
     if (confirm) {
       axios
         .put(
@@ -171,6 +174,7 @@ export const Manage = () => {
     let tempCategories = "";
     let tempItem = JSON.parse(JSON.stringify(item));
     delete tempItem["ItemID"];
+    delete tempItem["Name"];
     tempItem.categories.map((cat, i) => {
       tempCategories += cat;
       if (tempItem.categories.length - 1 !== i) {
@@ -183,9 +187,11 @@ export const Manage = () => {
     tempItem.First_Bid = "$" + tempItem.First_Bid;
     tempItem.Currently = "$" + tempItem.Currently;
     if (tempItem.Started == null) {
-      delete tempItem['Started'];
-      delete tempItem['Ends'];
+      delete tempItem["Started"];
+      delete tempItem["Ends"];
     } else {
+      tempItem["Bids"] = tempItem["Number_Of_Bids"];
+      delete tempItem["Number_Of_Bids"];
       let sdate = tempItem.Started.split("T")[0];
       let stime = tempItem.Started.split("T")[1].split(".")[0];
       tempItem.Started = sdate + ", " + stime;
@@ -193,12 +199,16 @@ export const Manage = () => {
       let etime = tempItem.Ends.split("T")[1].split("Z")[0];
       tempItem.Ends = edate + ", " + etime;
     }
-
+    
     return (
       <div>
+        <hr className="mt-3"></hr>
+        <div className="col-5 offset-1 mb-4" style={{ fontWeight: "bold" }}>
+          {item.Name}
+        </div>
         {Object.keys(tempItem).map((key, i) => (
           <div className="row">
-            <div className="col-6 col-sm-4">{key}:</div>
+            <div className="col-6 col-sm-2">{key}:</div>
             <div className="col-6 col-sm-8">{tempItem[key]}</div>
           </div>
         ))}
@@ -231,12 +241,9 @@ export const Manage = () => {
         <div className="row mt-5">
           {InactiveItems.map((item, i) => (
             <div key={item.ItemID}>
-              <div className="col-5 text-center" style={{ fontWeight: "bold" }}>
-                Item {i + 1}
-              </div>
               {DisplayItem(item)}
               <div className="row">
-                <div className="col-sm-6 col-12 mt-4 mb-4">
+                <div className="col-sm-6 col-12 mt-4 mb-4 mt-3">
                   <div
                     className="btn btn-primary col-sm-3 col-5"
                     data-bs-toggle="modal"
@@ -260,7 +267,6 @@ export const Manage = () => {
                   </div>
                 </div>
               </div>
-              <hr className="mt-3"></hr>
               <Modal
                 mode="Finalize"
                 title="Make item public and start auction"
@@ -287,11 +293,7 @@ export const Manage = () => {
         <div className="row mt-5">
           {ActiveItems.map((item, i) => (
             <div key={item.ItemID}>
-              <div className="col-5 text-center" style={{ fontWeight: "bold" }}>
-                Item {i + 1}
-              </div>
               {DisplayItem(item)}
-              <hr className="mt-3"></hr>
             </div>
           ))}
         </div>
@@ -302,8 +304,8 @@ export const Manage = () => {
         <div className="row mt-5">hello</div>
       </div>
 
-      <div style={{ height: "10rem" }}></div>
-      <Footer />
+      <div style={{ height: "5rem" }}></div>
+      {loading ? null : <Footer class="CustomFooter2" />}
     </div>
   );
 };

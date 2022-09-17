@@ -2,9 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./Footer.css";
 
-export const Footer = () => {
+export const Footer = (props) => {
+
   return (
-    <div className="CustomFooter">
+    <div className={props.class}>
       <div className="container">
         <div className="row mt-2">
           <div className="col-10 m-auto">
