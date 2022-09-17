@@ -1,4 +1,4 @@
-from cmath import nan
+from math import ceil
 from django.core.paginator import Paginator
 import datetime
 from dateutil.parser import isoparse
@@ -178,27 +178,35 @@ class SearchItems(APIView):
 
     def get(self, request):
         items = models.Item.objects.filter(Active=True)
-        itperpage = 6
+        itperpage = 4
 
         name = request.GET.get('name')
         if (not name == "null"):
             items = items.filter(Name__icontains=name)
-
         lprice = request.GET.get('lprice')
         rprice = request.GET.get('rprice')
 
-        if (not lprice == "null" or not rprice == "null"):
-            if (rprice == "null"):
+        if (not lprice == "" and not lprice == "null" or not rprice == "" and not rprice == "null"):
+            if (rprice == "" or rprice == "null"):
                 items = items.filter(Currently__gte=lprice)
-            elif (lprice == "null"):
+            elif (lprice == "" or lprice == "null"):
                 items = items.filter(Currently__lte=rprice)
             else:
                 items = items.filter(Currently__range=[lprice, rprice])
-
+        
         categories = request.GET.get('cat')
+        if(not categories == "null" and not categories == ""):
+            categories = categories.split(',')
+            categories = [cat.strip() for cat in categories]
+            categories = list(filter(None, categories))
+            catids = [models.Category.objects.get(Name=cat).id for cat in categories]
+            refnames = ["Category object (" + str(id) + ")" for id in catids]
+            refcats = models.Category.objects.filter(Name__in=refnames)
+            refids = [refcat.id for refcat in refcats]
+            items = items.filter(categories__in=refids).distinct()
 
         location = request.GET.get('location')
-        if (not location == "null"):
+        if (not location == "null" and not location == ""):
             users = models.CustomUser.objects.filter(is_approved=True, Location=location)
             userids = [user.id for user in users]
             items = items.filter(Seller__in=userids)
@@ -230,9 +238,10 @@ class SearchItems(APIView):
             user = models.CustomUser.objects.get(id=sellerid)
             data['Seller'] = user.UserId
             del data['Active']
+            del data['First_Bid']
             lstitems.append(data)
 
-        return Response(lstitems, status=status.HTTP_200_OK)
+        return Response([{"items": lstitems}, {"count": ceil(num / itperpage)}, {"page": page}], status=status.HTTP_200_OK)
 
 
 class getItem(APIView):
@@ -256,6 +265,7 @@ class getItem(APIView):
         user = models.CustomUser.objects.get(id=sellerid)
         data['Seller'] = user.UserId
         del data['Active']
+        del data['First_Bid']
 
         return Response(data, status=status.HTTP_200_OK)
 

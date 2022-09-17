@@ -70,23 +70,40 @@ export const Header = (props) => {
           </button>
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav">
-              {/* ms-3 ms-lg-0 me-sm-5 */}
               <li className="nav-item col-4 ms-3 ms-lg-0 me-sm-5">
-                <Link to={"/"} className={activeClass.home}>
-                  <h4>Home</h4>
-                </Link>
+                {active === "Home" ? (
+                  <a href="/" className={activeClass.home}>
+                    <h4>Home</h4>
+                  </a>
+                ) : (
+                  <Link to={"/"} className={activeClass.home}>
+                    <h4>Home</h4>
+                  </Link>
+                )}
               </li>
               <li className="nav-item col-4 ms-3 ms-lg-0 me-sm-5">
-                <Link to={"/Browse"} className={activeClass.browse}>
-                  <h4>Browse</h4>
-                </Link>
+                {active === "Browse" ? (
+                  <a href="/Browse" className={activeClass.browse}>
+                    <h4>Browse</h4>
+                  </a>
+                ) : (
+                  <Link to={"/Browse"} className={activeClass.browse}>
+                    <h4>Browse</h4>
+                  </Link>
+                )}
               </li>
               {/* Display Manage only to logged in users and not guests */}
               {AuthData.is_LoggedIn ? (
                 <li className="nav-iteem col-4 ms-3 ms-lg-0 me-sm-5">
-                  <Link to={"/Manage"} className={activeClass.manage}>
-                    <h4>Manage</h4>
-                  </Link>
+                  {active === "Manage" ? (
+                    <a href="/Manage" className={activeClass.manage}>
+                      <h4>Manage</h4>
+                    </a>
+                  ) : (
+                    <Link to={"/Manage"} className={activeClass.manage}>
+                      <h4>Manage</h4>
+                    </Link>
+                  )}
                 </li>
               ) : null}
             </ul>
@@ -118,10 +135,18 @@ export const Header = (props) => {
                   </div>
                 ) : (
                   <div>
-                    <Link to={"/"} onClick={removeGuest} className="btn btn-primary me-3 Header-btn">
+                    <Link
+                      to={"/"}
+                      onClick={removeGuest}
+                      className="btn btn-primary me-3 Header-btn"
+                    >
                       Sign In
                     </Link>
-                    <Link to={"/SignUp"} onClick={removeGuest} className="btn btn-primary Header-btn">
+                    <Link
+                      to={"/SignUp"}
+                      onClick={removeGuest}
+                      className="btn btn-primary Header-btn"
+                    >
                       Sign Up
                     </Link>
                   </div>

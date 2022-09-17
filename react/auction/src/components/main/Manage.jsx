@@ -199,7 +199,7 @@ export const Manage = () => {
       let etime = tempItem.Ends.split("T")[1].split("Z")[0];
       tempItem.Ends = edate + ", " + etime;
     }
-    
+
     return (
       <div>
         <hr className="mt-3"></hr>
@@ -238,7 +238,7 @@ export const Manage = () => {
         <div className="row mt-5" style={{ fontSize: "1.5rem" }}>
           Temporary saved items
         </div>
-        <div className="row mt-5">
+        <div className="row">
           {InactiveItems.map((item, i) => (
             <div key={item.ItemID}>
               {DisplayItem(item)}
@@ -290,7 +290,7 @@ export const Manage = () => {
         <div className="row mt-5" style={{ fontSize: "1.5rem" }}>
           Items on auction
         </div>
-        <div className="row mt-5">
+        <div className="row">
           {ActiveItems.map((item, i) => (
             <div key={item.ItemID}>
               {DisplayItem(item)}
