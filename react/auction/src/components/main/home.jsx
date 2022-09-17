@@ -109,7 +109,7 @@ export const Home = () => {
           </p>
         </div>
       </div>
-      <Footer />
+      <Footer class="CustomFooter" />
     </div>
   );
 };

@@ -24,7 +24,8 @@ export const Views = () => {
         <Route path="/MyAdmin" element={AuthData.role === "admin" ? <MyAdmin /> : <Navigate to={"/"} />} />
         <Route path="/MyAdmin/ApproveUsers" element={AuthData.role === "admin" ? <ApproveUsers /> : <Navigate to={"/"} />} />
         <Route path="SignUp/Pending" element={<Pending />} />
-        <Route path="/Browse" element={<Browse />} />
+        <Route path="/Browse" element={<Browse mode="default" />} /> 
+        <Route path="/Browse/item/:id" element={<Browse mode="item" />} />
         <Route path="/Manage" element={AuthData.is_LoggedIn ? <Manage /> : <Navigate to={"/"} />} />
         <Route
           path="*"

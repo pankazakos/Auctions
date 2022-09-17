@@ -49,7 +49,7 @@ export const Login = () => {
                     ) : null}
                     {err_credentials ? (
                       <div className="text-white col-10 col-sm-6 mt-1">
-                        *username and password do not correspond to any account
+                        *username and password do not belong to any account
                       </div>
                     ) : null}
                     <div className="form-floating col-10 col-sm-6 mt-3">
@@ -66,7 +66,7 @@ export const Login = () => {
                     </div>
                     {err_credentials ? (
                       <div className="text-white col-10 col-sm-6 mt-1">
-                        *username and password do not correspond to any account
+                        *username and password do not belong to any account
                       </div>
                     ) : null}
                     <div className="col mt-3 mb-3">
