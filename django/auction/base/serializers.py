@@ -60,7 +60,8 @@ class ItemSerializer(serializers.ModelSerializer):
         return item
 
 
+
 class BidSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Bid
-        fields = ['id', 'ItemID', 'Bidder', 'Time', 'Amount']
+        fields = '__all__'

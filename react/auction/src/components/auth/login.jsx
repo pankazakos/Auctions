@@ -44,7 +44,7 @@ export const Login = () => {
                     </div>
                     {empty_username ? (
                       <div className="text-white">
-                        *credentials not valid
+                        *username cannot be empty
                       </div>
                     ) : null}
                     {err_credentials ? (
@@ -66,7 +66,7 @@ export const Login = () => {
                     </div>
                     {err_credentials ? (
                       <div className="text-white col-10 col-sm-6 mt-1">
-                        *username and password do not belong to any account
+                        *credentilas not valid
                       </div>
                     ) : null}
                     <div className="col mt-3 mb-3">

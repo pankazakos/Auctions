@@ -23,7 +23,7 @@ class CustomUser(AbstractUser):
 
 
 class Category(models.Model):
-    # CategoryID is created automatically
+    # Category id is created automatically
     Name = models.CharField(max_length=100)
 
 
@@ -43,8 +43,8 @@ class Item(models.Model):
 
 
 class Bid(models.Model):
-    # BidID is created automatically
+    BidID = models.BigAutoField(primary_key=True)
     ItemID = models.ForeignKey(Item, on_delete=models.CASCADE)
     Bidder = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     Time = models.DateTimeField(auto_now=True)
-    Amount = models.IntegerField()
+    Amount = models.FloatField()
