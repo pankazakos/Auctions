@@ -1,5 +1,5 @@
 from math import ceil
-from django.core.paginator import Paginator
+from django.db.models import Max
 import datetime
 from dateutil.parser import isoparse
 from django.utils import timezone
@@ -14,8 +14,6 @@ from rest_framework.views import APIView
 import re
 
 # Custom View for api/token in order to return tokens only to approved users
-
-
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -168,6 +166,40 @@ class ListActiveItems(APIView):
             data['categories'] = categories
             del data['Active']
             del data['Seller']
+            bids = models.Bid.objects.filter(ItemID=item.ItemID)
+            amounts = [bid.Amount for bid in bids]
+            data.update({"List of bids": amounts})
+            lstitems.append(data)
+
+        return Response(lstitems, status=status.HTTP_200_OK)
+
+
+class ListBiddedItems(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        userid = models.CustomUser.objects.get(username=request.user).id
+        bids = models.Bid.objects.filter(Bidder=userid)
+        itemids = [bid.ItemID_id for bid in bids]
+        itemids = list(dict.fromkeys(itemids))
+        lstitems = list()
+        for id in itemids:
+            item = models.Item.objects.get(ItemID=id)
+            data = serializers.ItemSerializer(item).data
+            catids = data['categories']
+            categories = list()
+            for id in catids:
+                cat = models.Category.objects.get(id=id)
+                refid = int(re.findall(r'\b\d+\b', cat.Name)[0])
+                refcat = models.Category.objects.get(id=refid)
+                categories.append(refcat.Name)
+            data['categories'] = categories
+            del data['Active']
+            data['Seller'] = models.CustomUser.objects.get(id=data['Seller']).username
+            userBestBid = models.Bid.objects.filter(
+                Bidder=userid, ItemID=item.ItemID).aggregate(Max('Amount'))
+            data.update({'Your last bid': userBestBid['Amount__max']})
             lstitems.append(data)
 
         return Response(lstitems, status=status.HTTP_200_OK)
@@ -186,7 +218,7 @@ class SearchItems(APIView):
         lprice = request.GET.get('lprice')
         rprice = request.GET.get('rprice')
 
-        if (not lprice == "" and not lprice == "null" or not rprice == "" and not rprice == "null"):
+        if (lprice not in ['', None, "null"] or rprice not in ['', None, "null"]):
             if (rprice == "" or rprice == "null"):
                 items = items.filter(Currently__gte=lprice)
             elif (lprice == "" or lprice == "null"):
@@ -195,7 +227,7 @@ class SearchItems(APIView):
                 items = items.filter(Currently__range=[lprice, rprice])
         
         categories = request.GET.get('cat')
-        if(not categories == "null" and not categories == ""):
+        if(categories not in ['', None, "null"]):
             categories = categories.split(',')
             categories = [cat.strip() for cat in categories]
             categories = list(filter(None, categories))
@@ -206,10 +238,11 @@ class SearchItems(APIView):
             items = items.filter(categories__in=refids).distinct()
 
         location = request.GET.get('location')
-        if (not location == "null" and not location == ""):
-            users = models.CustomUser.objects.filter(is_approved=True, Location=location)
+        if (location not in ['', None, "null"]):
+            users = models.CustomUser.objects.filter(is_approved=True, Location__icontains=location)
             userids = [user.id for user in users]
             items = items.filter(Seller__in=userids)
+        
 
         if (not request.GET.get('page') == 'null'):
             page = int(request.GET.get('page'))
@@ -239,6 +272,7 @@ class SearchItems(APIView):
             data['Seller'] = user.UserId
             del data['Active']
             del data['First_Bid']
+            data.update({"Location": user.Location})
             lstitems.append(data)
 
         return Response([{"items": lstitems}, {"count": ceil(num / itperpage)}, {"page": page}], status=status.HTTP_200_OK)
@@ -266,6 +300,17 @@ class getItem(APIView):
         data['Seller'] = user.UserId
         del data['Active']
         del data['First_Bid']
+        data.update({"Location": user.Location})
+        bids = models.Bid.objects.filter(ItemID=item.ItemID)
+        amounts = [str(bid.Amount) + ", " for bid in bids]
+        # Remove space and comma of the last bid
+        if amounts:
+            amounts[len(amounts) - 1] = amounts[len(amounts) - 1][:-2]
+        data.update({"List of bids": amounts})
+
+        # Rearrange position inside dictionary
+        del data['Description']
+        data.update({"Description": item.Description})
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -347,3 +392,36 @@ class EditItem(APIView):
         item.save()
 
         return Response("OK", status=status.HTTP_200_OK)
+
+
+# Bids
+
+class BidView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if(request.data['Amount'] in ["", None, "null"] or request.data['ItemID'] in ["", None, "null"]):
+            return Response("Bad request", status=status.HTTP_400_BAD_REQUEST)
+
+        item = models.Item.objects.get(ItemID=request.data['ItemID'])
+
+        if(item.Seller == request.user):
+            return Response("user cannot make bids for his own items", status=status.HTTP_403_FORBIDDEN)
+
+        if(float(request.data['Amount']) <= item.Currently):
+            return Response("Bid too low", status=status.HTTP_400_BAD_REQUEST)
+
+        obj = dict(request.data)
+        obj.update({"Bidder": models.CustomUser.objects.get(username=request.user).id})
+        objSer = serializers.BidSerializer(data=obj)
+
+        if(objSer.is_valid()):
+            objSer.save()
+        else:
+            return Response(objSer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        item.Currently = request.data['Amount']
+        item.Number_Of_Bids = models.Bid.objects.filter(ItemID=item.ItemID).count()
+        item.save()
+
+        return Response("Created", status=status.HTTP_201_CREATED)

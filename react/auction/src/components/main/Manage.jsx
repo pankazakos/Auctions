@@ -37,7 +37,6 @@ const CreateItem = (event) => {
       window.location.reload(false);
     })
     .catch((error) => {
-      console.log(error);
       alert("Failed to create new item");
     });
 };
@@ -68,7 +67,6 @@ const EditItem = (event, id) => {
       }
     )
     .then((response) => {
-      console.log(response);
       alert("Item succesfully edited");
       window.location.reload(false);
     })
@@ -105,6 +103,7 @@ const DeleteItem = (id) => {
 export const Manage = () => {
   const [InactiveItems, setInactiveItems] = useState([]);
   const [ActiveItems, setActiveItems] = useState([]);
+  const [biddeditems, setBiddedItems] = useState([]);
   const [time, setTime] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -139,7 +138,19 @@ export const Manage = () => {
       .catch((error) => {
         console.log(error);
       });
-  }, [setInactiveItems, setActiveItems]);
+
+      axios.get("/api/list/items/bidded/", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      }).then((response) => {
+        setBiddedItems(response.data);
+      }).catch((error) => {
+        console.log(error);
+      });
+  }, []);
 
   const ActivateItem = (id) => {
     let confirm = window.confirm("Are you sure you want to start the auction?");
@@ -292,16 +303,18 @@ export const Manage = () => {
         </div>
         <div className="row">
           {ActiveItems.map((item, i) => (
-            <div key={item.ItemID}>
-              {DisplayItem(item)}
-            </div>
+            <div key={item.ItemID}>{DisplayItem(item)}</div>
           ))}
         </div>
         <hr></hr>
         <div className="row mt-5" style={{ fontSize: "1.5rem" }}>
-          Bids on auctions
+          Items with your bids
         </div>
-        <div className="row mt-5">hello</div>
+        <div className="row">
+          {biddeditems.map((item, i) => (
+            <div key={item.ItemID}>{DisplayItem(item)}</div>
+          ))}
+        </div>
       </div>
 
       <div style={{ height: "5rem" }}></div>

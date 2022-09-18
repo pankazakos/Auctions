@@ -1,6 +1,5 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework import status
-from rest_framework.response import Response
+from rest_framework_simplejwt.views import InvalidToken
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -10,4 +9,4 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if self.user.is_approved:
             return data
         else:
-           return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+            raise InvalidToken

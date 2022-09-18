@@ -3,9 +3,12 @@ import "./Browse.css";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import AuthContext from "../auth/Auth";
 
 export const Browse = (props) => {
+  const { AuthData } = useContext(AuthContext);
+  const isGuest = sessionStorage.getItem("role");
   const [items, setItems] = useState([]);
   const [item, setItem] = useState([]);
   const [count, setCount] = useState();
@@ -26,7 +29,6 @@ export const Browse = (props) => {
       axios
         .get("/api/get/item/" + itemid)
         .then((response) => {
-          console.log(response);
           setItem(response.data);
           setLoading(false);
         })
@@ -67,7 +69,6 @@ export const Browse = (props) => {
             parpage
         )
         .then((response) => {
-          console.log(response);
           setItems(response.data[0].items);
           setCount(parseInt(response.data[1].count));
           setPage(parseInt(response.data[2].page));
@@ -78,6 +79,35 @@ export const Browse = (props) => {
         });
     }
   }, [props.mode]);
+
+  const PlaceBid = (e) => {
+    e.preventDefault();
+    const confirm = window.confirm("Are you sure you want to place bid?");
+    if (confirm) {
+      axios
+        .post(
+          "/api/bids/",
+          {
+            ItemID: item.ItemID,
+            Amount: e.target.amountinp.value,
+          },
+          {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+              "Content-Type": "application/json",
+              accept: "application/json",
+            },
+          }
+        )
+        .then((response) => {
+          window.location.reload(false);
+        })
+        .catch((error) => {
+          console.log(error);
+          alert("Failed to place bid");
+        });
+    }
+  };
 
   const DisplayItem = (item, detail) => {
     let tempCategories = "";
@@ -145,19 +175,28 @@ export const Browse = (props) => {
             {loading ? null : (
               <div key={item.ItemID}>
                 {DisplayItem(item, true)}
-                <div className="row mt-5">
-                  <div className="col-3 offset-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      id="bidinp"
-                      min={item.Currently}
-                      className="form-control"
-                      placeholder={"$ " + item.Currently}
-                    />
+                {isGuest || item.Seller === AuthData.username ? null : (
+                  <div className="row mt-5">
+                    <form onSubmit={PlaceBid}>
+                      <div className="row offset-2">
+                        <div className="col-3">
+                          <input
+                            name="amountinp"
+                            type="number"
+                            step="0.01"
+                            id="bidinp"
+                            min={item.Currently + 0.01}
+                            className="form-control"
+                            placeholder={"$ " + item.Currently}
+                          />
+                        </div>
+                        <button type="submit" className="btn btn-primary col-2">
+                          Place Bid
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                  <div className="btn btn-primary col-2">Place Bid</div>
-                </div>
+                )}
               </div>
             )}
           </div>
