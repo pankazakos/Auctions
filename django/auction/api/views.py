@@ -38,12 +38,23 @@ class ItemPermission(BasePermission):
 
 
 class ListAllUsers(generics.ListAPIView):
-
     permission_classes = [permissions.IsAdminUser]
-
     serializer_class = serializers.ListUserSerializer
     queryset = models.CustomUser.objects.filter(
         is_approved=False, is_superuser=False)
+
+
+class ListUsernames(APIView):
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        users = models.CustomUser.objects.all()
+        usernames = [serializers.ListUserSerializer(
+            user).data['username'] for user in users]
+
+        return Response(usernames, status=status.HTTP_200_OK)
+
 
 
 class ApproveUsers(generics.UpdateAPIView):
@@ -57,9 +68,24 @@ class ApproveUsers(generics.UpdateAPIView):
 # Get individual user by id
 class GetUser(generics.RetrieveAPIView):
     permission_classes = [UserPermission]
-    serializer_class = serializers.CustomUserSerializer
+    serializer_class = serializers.ListUserSerializer
     queryset = models.CustomUser.objects.all()
 
+# Get user by username
+class GetByUsername(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, username):
+        user = models.CustomUser.objects.get(username=username)
+        data = serializers.ListUserSerializer(user).data
+
+        data['is_approved'] = str(data['is_approved'])
+        data['is_staff'] = str(data['is_staff'])
+        data['is_superuser'] = str(data['is_superuser'])
+        data['Longitude'] = str(data['Longitude'])
+        data['Latitude'] = str(data['Latitude'])
+
+        return Response(data, status=status.HTTP_200_OK)
 
 # Register new user
 class CreateUser(APIView):
