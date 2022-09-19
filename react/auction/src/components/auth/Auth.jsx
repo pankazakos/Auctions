@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import sha256 from "sha256";
+import { useCallback } from "react";
 
 const AuthContext = createContext();
 
@@ -14,6 +15,8 @@ export const AuthProvider = ({ children }) => {
   const [submitted, setSubmitted] = useState(false);
 
   const [loading, setLoading] = useState(true);
+
+  const [refreshed, setRefreshed] = useState(false);
 
   const nav = useNavigate();
 
@@ -60,6 +63,19 @@ export const AuthProvider = ({ children }) => {
     is_LoggedIn: localStorage.getItem("access_token") ? true : false,
   });
 
+  const LogoutUser = useCallback(() => {
+    setAuthData({
+      jwt: "",
+      user_id: "",
+      username: "",
+      role: "guest",
+      is_LoggedIn: false,
+    });
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    nav("/");
+  }, [nav]);
+
   // Triggered at initial render and at form submission
   useEffect(() => {
     if (submitted) {
@@ -90,25 +106,45 @@ export const AuthProvider = ({ children }) => {
         })
         .catch((error) => {
           console.log(error);
-          alert("Something went wrong. Please Login again");
+          // First try to refresh the access token
+          if (localStorage.getItem("refresh_token")) {
+            axios
+              .post("/api/token/refresh/", {
+                refresh: localStorage.getItem("refresh_token"),
+              })
+              .then((response) => {
+                localStorage.setItem("access_token", response.data.access);
+                localStorage.setItem("refresh_token", response.data.refresh);
+                setRefreshed(true); // execute again useEffect with new acces token
+              })
+              .catch((error) => {
+                // Finally logout user if refresh token has expired too
+                LogoutUser();
+                window.location.reload(false);
+              });
+          }
         });
     } else {
       setLoading(false);
     }
-  }, [submitted]);
-
-  const LogoutUser = () => {
-    setAuthData({
-      jwt: "",
-      user_id: "",
-      username: "",
-      role: "guest",
-      is_LoggedIn: false,
-    });
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    nav("/");
-  };
+    // refresh every 9 minutes for access token that lasts 10 minutes
+    let minutes = 1000 * 60 * 9;
+    let interval = setInterval(() => {
+      // if tokens exist in local storage
+      if (localStorage.getItem("refresh_token")) {
+        // Update access token with refresh token every 2 minutes
+        axios
+          .post("/api/token/refresh/", {
+            refresh: localStorage.getItem("refresh_token"),
+          })
+          .then((response) => {
+            localStorage.setItem("access_token", response.data.access);
+            localStorage.setItem("refresh_token", response.data.refresh);
+          });
+      }
+    }, minutes);
+    return () => clearInterval(interval);
+  }, [submitted, LogoutUser, refreshed]);
 
   return (
     <AuthContext.Provider
