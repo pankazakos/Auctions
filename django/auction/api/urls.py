@@ -1,12 +1,14 @@
 from django.urls import path
-from api.views import (BidView, ListBiddedItems, SearchItems, ActivateItem, ApproveUsers, CreateItem, CreateUser, DeleteItem,
+from api.views import (BidView, GetByUsername, ListBiddedItems, ListUsernames, SearchItems, ActivateItem, ApproveUsers, CreateItem, CreateUser, DeleteItem,
                        EditItem, GetUser, ListActiveItems, ListAllUsers, ListInactiveItems, ListPendingUsers, getItem)
 
 
 urlpatterns = [
     path('list/users/', ListAllUsers.as_view(), name='ListAllUsers'),
+    path('list/usernames/', ListUsernames.as_view(), name='ListUsernames'),
     path('create/user/', CreateUser.as_view(), name='CreateUser'),
     path('get/user/<int:pk>', GetUser.as_view(), name='GetUser'),
+    path('get/user/<str:username>', GetByUsername.as_view(), name="Get_user_by_username"),
     path('filter/users/', ListPendingUsers.as_view(), name='ListPendingUsers'),
     path('users/approve/<int:pk>', ApproveUsers.as_view(), name='ApproveUsers'),
     path('create/item/', CreateItem.as_view(), name='CreateItem'),

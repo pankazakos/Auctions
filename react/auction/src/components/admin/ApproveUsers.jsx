@@ -2,7 +2,6 @@ import axios from "axios";
 import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-import "./ApproveUsers.css";
 
 const DisplayUser = (user) => {
   let tempUser = JSON.parse(JSON.stringify(user));
@@ -37,7 +36,7 @@ export const ApproveUsers = () => {
 
   useEffect(() => {
     axios
-      .get("../api/list/users/", {
+      .get("/api/list/users/", {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("access_token"),
           "Content-Type": "application/json",
@@ -45,7 +44,6 @@ export const ApproveUsers = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
         SetUsers(response.data);
       })
       .catch((error) => {
@@ -56,7 +54,7 @@ export const ApproveUsers = () => {
   const approve = (id) => {
     axios
       .put(
-        "../api/users/approve/" + id,
+        "/api/users/approve/" + id,
         {
           is_approved: true,
         },
@@ -74,7 +72,7 @@ export const ApproveUsers = () => {
   };
 
   return (
-    <div className="ApproveUserspage">
+    <div style={{ backgroundColor: "rgb(243, 243, 243)", height: "100%" }}>
       <div className="container">
         <div className="row">
           {users.map((user) => (
