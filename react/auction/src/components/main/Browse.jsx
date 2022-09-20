@@ -127,14 +127,18 @@ export const Browse = (props) => {
       return null;
     });
     tempItem.categories = tempCategories;
-    tempItem.Buy_Price = "$" + tempItem.Buy_Price;
+    if(tempItem.Buy_Price == null){
+      tempItem.Buy_Price = "-"
+    }else {
+      tempItem.Buy_Price = "$" + tempItem.Buy_Price;
+    }
     tempItem.Currently = "$" + tempItem.Currently;
     if (tempItem.Started == null) {
       delete tempItem["Started"];
       delete tempItem["Ends"];
     } else {
       let sdate = tempItem.Started.split("T")[0];
-      let stime = tempItem.Started.split("T")[1].split(".")[0];
+      let stime = tempItem.Started.split("T")[1].split(".")[0].split("Z")[0];
       tempItem.Started = sdate + ", " + stime;
       let edate = tempItem.Ends.split("T")[0];
       let etime = tempItem.Ends.split("T")[1].split("Z")[0];
@@ -145,7 +149,7 @@ export const Browse = (props) => {
       <div className="row">
         <div
           className={
-            detail ? "col-4 mb-3 mt-5 offset-2" : "col-4 offset-1 mb-3 mt-5"
+            detail ? "col-10 mb-3 mt-5 offset-2" : "col-10 offset-1 mb-3 mt-5"
           }
           style={{ fontWeight: "bold" }}
         >

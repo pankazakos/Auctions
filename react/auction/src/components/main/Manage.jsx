@@ -139,15 +139,18 @@ export const Manage = () => {
         console.log(error);
       });
 
-      axios.get("/api/list/items/bidded/", {
+    axios
+      .get("/api/list/items/bidded/", {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("access_token"),
           "Content-Type": "application/json",
           accept: "application/json",
         },
-      }).then((response) => {
+      })
+      .then((response) => {
         setBiddedItems(response.data);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         console.log(error);
       });
   }, []);
@@ -194,7 +197,11 @@ export const Manage = () => {
       return null;
     });
     tempItem.categories = tempCategories;
-    tempItem.Buy_Price = "$" + tempItem.Buy_Price;
+    if (tempItem.Buy_Price == null) {
+      tempItem.Buy_Price = "-";
+    } else {
+      tempItem.Buy_Price = "$" + tempItem.Buy_Price;
+    }
     tempItem.First_Bid = "$" + tempItem.First_Bid;
     tempItem.Currently = "$" + tempItem.Currently;
     if (tempItem.Started == null) {
@@ -204,7 +211,7 @@ export const Manage = () => {
       tempItem["Bids"] = tempItem["Number_Of_Bids"];
       delete tempItem["Number_Of_Bids"];
       let sdate = tempItem.Started.split("T")[0];
-      let stime = tempItem.Started.split("T")[1].split(".")[0];
+      let stime = tempItem.Started.split("T")[1].split(".")[0].split("Z")[0];
       tempItem.Started = sdate + ", " + stime;
       let edate = tempItem.Ends.split("T")[0];
       let etime = tempItem.Ends.split("T")[1].split("Z")[0];
