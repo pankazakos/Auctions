@@ -14,13 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.http import HttpResponse
 from django.urls import path, include, re_path
-from base.views import front
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from base.views import front, items, users
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 
@@ -34,11 +30,14 @@ urlpatterns = [
     re_path(r'^favicon\.ico$', RedirectView.as_view(
         url=staticfiles_storage.path(os.path.join(Path(__file__).resolve().parent.parent.parent.parent, 'django/auction/static/favicon.ico')))),
     path("Browse/", front),
+    path("Browse/item/<int:id>/", items), 
     path("Manage/", front),
     path("SignUp/", front),
     path("SignUp/Pending/", front),
     path("MyAdmin/", front),
     path("MyAdmin/ApproveUsers", front),
+    path("MyAdmin/ListUsers/", front),
+    path("MyAdmin/ListUsers/<str:username>", users),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),

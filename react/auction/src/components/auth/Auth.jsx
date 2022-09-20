@@ -127,8 +127,8 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-    // refresh every 9 minutes for access token that lasts 10 minutes
-    let minutes = 1000 * 60 * 9;
+    // refresh every 10 minutes for access token that lasts 11 minutes
+    let minutes = 1000 * 60 * 10;
     let interval = setInterval(() => {
       // if tokens exist in local storage
       if (localStorage.getItem("refresh_token")) {

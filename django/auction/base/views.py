@@ -7,3 +7,13 @@ from django.shortcuts import render
 def front(request):
     context = {}
     return render(request, "index.html", context)
+
+
+def items(request, id):
+    context = {}
+    return render(request, "index.html", context)
+
+
+def users(request, username):
+    context = {}
+    return render(request, "index.html", context)
