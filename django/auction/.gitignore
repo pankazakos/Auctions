@@ -4,3 +4,4 @@ auction/__pycache__
 auction/static
 base/migrations
 base/__pycache__
+ebay-data/
