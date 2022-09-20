@@ -149,7 +149,7 @@ export const Browse = (props) => {
           }
           style={{ fontWeight: "bold" }}
         >
-          <a href={"/Browse/item/" + item.ItemID} style={{ color: "inherit" }}>
+          <a href={"/Browse/item/" + item.ItemID + "/"} style={{ color: "inherit" }}>
             {item.Name}
           </a>
         </div>

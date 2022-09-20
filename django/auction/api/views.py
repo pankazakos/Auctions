@@ -307,9 +307,9 @@ class SearchItems(APIView):
 class getItem(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, pk):
+    def get(self, request, id):
         try:
-            item = models.Item.objects.get(ItemID=pk, Active=True)
+            item = models.Item.objects.get(ItemID=id, Active=True)
         except:
             return Response("Item Not Found", status=status.HTTP_404_NOT_FOUND)
         data = serializers.ItemSerializer(item).data
