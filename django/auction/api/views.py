@@ -193,7 +193,10 @@ class ListActiveItems(APIView):
             del data['Active']
             del data['Seller']
             bids = models.Bid.objects.filter(ItemID=item.ItemID)
-            amounts = [bid.Amount for bid in bids]
+            amounts = ["$" + str(bid.Amount) + ", " for bid in bids]
+            # Remove space and comma of the last bid
+            if amounts:
+                amounts[len(amounts) - 1] = amounts[len(amounts) - 1][:-2]
             data.update({"List of bids": amounts})
             lstitems.append(data)
 
@@ -226,6 +229,12 @@ class ListBiddedItems(APIView):
             userBestBid = models.Bid.objects.filter(
                 Bidder=userid, ItemID=item.ItemID).aggregate(Max('Amount'))
             data.update({'Your last bid': userBestBid['Amount__max']})
+            bids = models.Bid.objects.filter(ItemID=item.ItemID)
+            amounts = ["$" + str(bid.Amount) + ", " for bid in bids]
+            # Remove space and comma of the last bid
+            if amounts:
+                amounts[len(amounts) - 1] = amounts[len(amounts) - 1][:-2]
+            data.update({"List of bids": amounts})
             lstitems.append(data)
 
         return Response(lstitems, status=status.HTTP_200_OK)
@@ -265,7 +274,7 @@ class SearchItems(APIView):
 
         location = request.GET.get('location')
         if (location not in ['', None, "null"]):
-            users = models.CustomUser.objects.filter(is_approved=True, Location__icontains=location)
+            users = models.CustomUser.objects.filter(Location__icontains=location)
             userids = [user.id for user in users]
             items = items.filter(Seller__in=userids)
         

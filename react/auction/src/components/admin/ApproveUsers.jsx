@@ -72,7 +72,7 @@ export const ApproveUsers = () => {
   };
 
   return (
-    <div style={{ backgroundColor: "rgb(243, 243, 243)", height: "100%" }}>
+    <div style={{ height: "100%", backgroundColor: "rgb(243, 243, 243)" }}>
       <div className="container">
         <div className="row">
           {users.map((user) => (

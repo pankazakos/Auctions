@@ -127,9 +127,9 @@ export const Browse = (props) => {
       return null;
     });
     tempItem.categories = tempCategories;
-    if(tempItem.Buy_Price == null){
-      tempItem.Buy_Price = "-"
-    }else {
+    if (tempItem.Buy_Price == null) {
+      tempItem.Buy_Price = "-";
+    } else {
       tempItem.Buy_Price = "$" + tempItem.Buy_Price;
     }
     tempItem.Currently = "$" + tempItem.Currently;
@@ -153,7 +153,10 @@ export const Browse = (props) => {
           }
           style={{ fontWeight: "bold" }}
         >
-          <a href={"/Browse/item/" + item.ItemID + "/"} style={{ color: "inherit" }}>
+          <a
+            href={"/Browse/item/" + item.ItemID + "/"}
+            style={{ color: "inherit" }}
+          >
             {item.Name}
           </a>
         </div>
