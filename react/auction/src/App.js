@@ -7,7 +7,7 @@ import { Views } from "./Views";
 
 function App() {
     return (
-        <div>
+        <div style={{height: "100%"}}>
             <BrowserRouter>
                 <AuthProvider>
                     <Views />

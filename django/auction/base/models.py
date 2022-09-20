@@ -39,7 +39,7 @@ class Item(models.Model):
     Ends = models.DateTimeField(null=True)
     Active = models.BooleanField(default=False)
     Seller = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    Description = models.TextField()
+    Description = models.TextField(null=True)
 
 
 class Bid(models.Model):
