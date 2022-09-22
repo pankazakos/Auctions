@@ -1,6 +1,9 @@
 #!/bin/env python
 import recommend
 
+recommend.check_examples()
+
+
 '''^^^\__/^^\__/^^^^^^\__/^^\__/^\__/^^\__/^^^^\__/\__/^^^^
 ┌─────────────────────────────────────────────────────────┐
 │ ███████ █     █    █    █     █ ██████  █       ███████ │
@@ -13,26 +16,23 @@ import recommend
 └─────────────────────────────────────────────────────────┘
 ^\__/^\__/^^^^\__/^^\__/^^^^^\__/^\__/\__/^^^\__/^^\__/^'''
 
-recommend.check_examples()
 
-visits = [
-        [x == 'O' for x in '.OO....O...O...'],
-        [x == 'O' for x in '....O......O...'],
-        [x == 'O' for x in '...........O.O.'],
-        [x == 'O' for x in '.O.......O....O'],  # eccentric
-        [x == 'O' for x in '..O....O...O...'],
-        [x == 'O' for x in '.......O.......'],
-        [x == 'O' for x in '....O..O...O...'],
-        [x == 'O' for x in '.O............O'],  # similar
-        [x == 'O' for x in 'O..........O...'],
-        [x == 'O' for x in '..O....O...O...'],
-        ]
+
+matrix = [
+    # users have similar rating for items 0 and 1. So, item 10 will be recommended to user 0 because of user's 1 rating
+    [1, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+]
+
 recomm = recommend.Recommendations()
-recomm.update_using_array(visits, debug=True)
+recomm.update_using_array(matrix, debug=False)
 
-print('')
-print('Top 3 recommendations for user #2:')
-for r in recomm.for_user(2)[:3]:
-    print('item from position', r[0], ', points: ', r[1])
 
-recomm.print()
+for i in range(len(matrix)):
+    print('Top Recommendations for user #', str(i))
+    scoreslst = recomm.for_user(i)
+
+    for r in scoreslst[:3]:
+        print('item from position', r[0], ', points: ', r[1])
+
+    print("\n")

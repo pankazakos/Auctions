@@ -65,3 +65,9 @@ class BidSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Bid
         fields = '__all__'
+
+
+class VisitsAndRecomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.VisitsAndRecom
+        fields = '__all__'

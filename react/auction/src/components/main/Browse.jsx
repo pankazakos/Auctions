@@ -27,7 +27,15 @@ export const Browse = (props) => {
     if (props.mode === "item") {
       const itemid = window.location.pathname.split("/")[3];
       axios
-        .get("/api/get/item/" + itemid)
+        .get("/api/get/item/" + itemid, {
+          headers: {
+            Authorization: localStorage.getItem("access_token")
+              ? "Bearer " + localStorage.getItem("access_token")
+              : null,
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+        })
         .then((response) => {
           setItem(response.data);
           setLoading(false);
@@ -66,7 +74,16 @@ export const Browse = (props) => {
             "&location=" +
             location +
             "&page=" +
-            parpage
+            parpage,
+          {
+            headers: {
+              Authorization: localStorage.getItem("access_token")
+                ? "Bearer " + localStorage.getItem("access_token")
+                : null,
+              "Content-Type": "application/json",
+              accept: "application/json",
+            },
+          }
         )
         .then((response) => {
           setItems(response.data[0].items);

@@ -1,4 +1,4 @@
-from asyncio import constants
+from xmlrpc.client import DateTime
 from django.core.management.base import BaseCommand
 import xml.etree.ElementTree as et
 from base import models
@@ -15,15 +15,17 @@ class Command(BaseCommand):
 
     help = "Inserts xml data to database"
 
-    # def add_arguments(self, parser) -> None:
-    #     parser.add_argument('phone', nargs='+', type=int)
-    #     parser.add_argument('tin', nargs='+', type=int)
+    def add_arguments(self, parser) -> None:
+        parser.add_argument('phone', type=int)
+        parser.add_argument('tin', type=int)
+        parser.add_argument('start', type=int)
+        parser.add_argument('end', type=int)
 
-    # phone_counter = int(sys.argv[2])
-    # tin_counter = int(sys.argv[3])
+    phone_counter = int(sys.argv[2])
+    tin_counter = int(sys.argv[3])
+    start = int(sys.argv[4])
+    end = int(sys.argv[5])
 
-    phone_counter = 0
-    tin_counter = 0
 
     def fillzeroes(self, strnumber: str, limit):
         fill = ""
@@ -69,7 +71,7 @@ class Command(BaseCommand):
 
     # Override to use Command
     def handle(self, *args, **options):
-        print(datetime.datetime.now())
+        print("Started:", datetime.datetime.now())
 
         months = {"Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
         "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"}
@@ -84,7 +86,7 @@ class Command(BaseCommand):
         # compiling the pattern for alphanumeric string (from https://www.geeksforgeeks.org/how-to-check-a-valid-regex-string-using-python/)
         pat = re.compile(r"[A-Za-z0-9]+")
 
-        for row in root:
+        for row in root[self.start:self.end]:
             # ItemID increments automatically
 
             index = 0
@@ -203,25 +205,44 @@ class Command(BaseCommand):
                 subtree.append(bidtree)
 
             for bitree in subtree:
+
                 # Skip users with bad usernames containing symbols except @ sign
                 if not re.fullmatch(pat, bitree["Bidder"]) or bitree["Country"] == None:
                     continue
+
                 # Get or create user if he does not exist
                 bidder = self.get_or_createuser(bitree["Bidder"].split(
                     "@")[0], bitree["Location"], bitree["Country"])
-                # # Create Bid
+
+                # Create Bid
                 bidobj = {"ItemID": models.Item.objects.get(ItemID=itemSer.data["ItemID"]).ItemID, "Bidder": bidder.id,
                         "Amount": float(bitree["Amount"].split("$")[1])}
                 bidSer = serializers.BidSerializer(data=bidobj)
+
+                # Create a row inside VisitsAndRecom, because a user cannot make a bid without visiting first the item
+                try:
+                    models.VisitsAndRecom.objects.get(UserId_id=bitree["Bidder"], ItemID=bitree["ItemID"])
+                except:
+                    vobj = {"UserId": bidder.id,
+                            "ItemID": itemSer.data["ItemID"]}
+                    VisitsSer = serializers.VisitsAndRecomSerializer(data=vobj)
+                    if (VisitsSer.is_valid()):
+                        VisitsSer.save()
+                    else:
+                        print(VisitsSer.errors)
+                        print("Ended:", datetime.datetime.now())
+                        raise Exception(
+                            "Failed to create row inside VisitsAndRecom for bidder id:", bitree["Bidder"])
+
 
                 if (bidSer.is_valid()):
                     bidSer.save()
                 else:
                     print(bidSer.errors)
-                    print(datetime.datetime.now())
+                    print("Ended:", datetime.datetime.now())
                     raise Exception(
                         "Failed to create Bid with Bidder Id ", bitree["Bidder"])
 
-        print(datetime.datetime.now())
+        print("Ended:", datetime.datetime.now())
 
         return "Succesfully filled database with data"

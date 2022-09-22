@@ -225,17 +225,17 @@ def multi_generation_training(data_set, debug=False):
         len(data_set),
         len(data_set[0])) / 3))
 
-    num_of_generations = 201
-    cleanup_every = 10
-    graduating_gens = 5
+    num_of_generations = 1000
+    cleanup_every = 5
+    graduating_gens = 10
     assert graduating_gens<num_of_generations/cleanup_every
     generations = []
     cleaned_up = []
 
-    fat_loops = 2
-    fat_step = 0.10
-    grinding_loops = 10
-    grinding_step = 0.1
+    fat_loops = 10
+    fat_step = 0.05
+    grinding_loops = 50
+    grinding_step = 0.01
 
     # first bunch
     for i in range(num_of_generations):

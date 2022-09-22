@@ -1,4 +1,6 @@
+from itertools import chain
 from math import ceil
+from typing import final
 from django.db.models import Max
 import datetime
 from dateutil.parser import isoparse
@@ -12,6 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from api.serializers import MyTokenObtainPairSerializer
 from rest_framework.views import APIView
 import re
+from django.db.models.functions import Coalesce
 
 # Custom View for api/token in order to return tokens only to approved users
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -241,25 +244,44 @@ class ListBiddedItems(APIView):
 
 
 class SearchItems(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny | permissions.IsAuthenticated]
 
     def get(self, request):
-        items = models.Item.objects.filter(Active=True)
+        
+        # Initialize to empty list for guests
+        recomids = []
+        recomitems = models.Item.objects.none()
+
+        # Get the recommended items
+        if (str(request.user) != "AnonymousUser"):
+
+            recomqrset = models.VisitsAndRecom.objects.filter(UserId_id=request.user.id)
+            recomids = [recom.ItemID_id for recom in recomqrset]
+            recomitems = models.Item.objects.filter(ItemID__in=recomids)
+        
+
+        # Get the all the rest of the items
+        items = models.Item.objects.filter(Active=True).exclude(ItemID__in=recomids)
+
         itperpage = 4
 
         name = request.GET.get('name')
         if (not name == "null"):
             items = items.filter(Name__icontains=name)
+            recomitems = recomitems.filter(Name__icontains=name)
+
         lprice = request.GET.get('lprice')
         rprice = request.GET.get('rprice')
-
         if (lprice not in ['', None, "null"] or rprice not in ['', None, "null"]):
             if (rprice == "" or rprice == "null"):
                 items = items.filter(Currently__gte=lprice)
+                recomitems = recomitems.filter(Currently_gte=lprice)
             elif (lprice == "" or lprice == "null"):
                 items = items.filter(Currently__lte=rprice)
+                recomitems = recomitems.filter(Currently_lte=rprice)
             else:
                 items = items.filter(Currently__range=[lprice, rprice])
+                recomitems = recomitems.filter(Currently_range=[lprice, rprice])
         
         categories = request.GET.get('cat')
         if(categories not in ['', None, "null"]):
@@ -271,12 +293,14 @@ class SearchItems(APIView):
             refcats = models.Category.objects.filter(Name__in=refnames)
             refids = [refcat.id for refcat in refcats]
             items = items.filter(categories__in=refids).distinct()
+            recomitems = recomitems.filter(categories__in=refids).distinct()
 
         location = request.GET.get('location')
         if (location not in ['', None, "null"]):
             users = models.CustomUser.objects.filter(Location__icontains=location)
             userids = [user.id for user in users]
             items = items.filter(Seller__in=userids)
+            recomitems = recomitems.filter(Seller__in=userids)
         
 
         if (not request.GET.get('page') == 'null'):
@@ -285,14 +309,18 @@ class SearchItems(APIView):
             page = 1
         
         num = items.count()
+        r_num = recomitems.count()
         start = (page - 1) * itperpage
-        if (start  > num):
+        if (start  > num + r_num):
             return Response("Page does not exist", status=status.HTTP_400_BAD_REQUEST)
 
+        # concatenate the two querysets
+        finalitems = list(chain(recomitems, items))
+
         end = page * itperpage
-        items = items[start:end]
+        finalitems = finalitems[start:end]
         lstitems = list()
-        for item in items:
+        for item in finalitems:
             data = serializers.ItemSerializer(item).data
             catids = data['categories']
             categories = list()
@@ -309,12 +337,13 @@ class SearchItems(APIView):
             del data['First_Bid']
             data.update({"Location": user.Location})
             lstitems.append(data)
+        
 
-        return Response([{"items": lstitems}, {"count": ceil(num / itperpage)}, {"page": page}], status=status.HTTP_200_OK)
+        return Response([{"items": lstitems}, {"count": ceil((num + r_num) / itperpage)}, {"page": page}], status=status.HTTP_200_OK)
 
 
 class getItem(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny | permissions.IsAuthenticated]
 
     def get(self, request, id):
         try:
@@ -346,6 +375,21 @@ class getItem(APIView):
         # Rearrange position inside dictionary
         del data['Description']
         data.update({"Description": item.Description})
+
+
+        # Store visits of this item for users
+        if(str(request.user) != "AnonymousUser"):
+            try:
+                # Update visits if row already exists
+                Visits = models.VisitsAndRecom.objects.get(UserId=request.user.id, ItemID=item.ItemID)
+                Visits.visits += 1
+                Visits.save()
+            except:
+                # Create new row to store visits for this item and user
+                obj = {"UserId": request.user.id, "ItemID": item.ItemID}
+                VisitsSer = serializers.VisitsAndRecomSerializer(data=obj)
+                if(VisitsSer.is_valid()):
+                    VisitsSer.save()
 
         return Response(data, status=status.HTTP_200_OK)
 
