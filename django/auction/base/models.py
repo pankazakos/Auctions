@@ -54,19 +54,12 @@ class Bid(models.Model):
 Each time a user visits an item, number of visits is updated or a new row is created in case it is the first time.
 Also, this table holds the scores from the recommendator which are updated whenever the update script runs.
 These items will be first fetched by SearchItems view and order them by their scores. 
-Note: This table does not contain all items because it would take too long to sort all items, so SearchItems has to fetch the rest from Item table.
+Note: This table does not contain all items because it would take too long to sort all items, so SearchItems view 
+has to fetch the rest from Item table.
 """
 class VisitsAndRecom(models.Model):
-    # id is created automatically
+    id = models.BigAutoField(primary_key=True)
     UserId = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     ItemID = models.ForeignKey(Item, on_delete=models.CASCADE)
-    visits = models.IntegerField(default=1)
+    visits = models.IntegerField()
     score = models.FloatField(default=0.0)
-
-
-# # For every user store score result from recommendation algorithm for each item (m x n table size).
-# class Matrix(models.Model):
-#     # id is created automatically
-#     UserId = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-#     ItemID = models.ForeignKey(Item, on_delete=models.CASCADE)
-#     score = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], default=0.0)

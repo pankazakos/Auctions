@@ -48,6 +48,16 @@ class Command(BaseCommand):
             print('Top 3 Recommendations for user with id:', str(users[i].id))
             scoreslst = recomm.for_user(i)
 
+            # Reset scores from past calculations
+            past = models.VisitsAndRecom.objects.filter(UserId=users[i])
+            for p in past:
+                # row is useless for now. It will be created again if the user visits the item or gets high score 
+                if(p.visits == 0):
+                    p.delete()
+                else:
+                    p.score = 0
+                    p.save()
+
             for r in scoreslst[:3]:
                 print('item with id:', items[r[0]].ItemID, ', points: ', r[1])
                 try:
@@ -56,7 +66,7 @@ class Command(BaseCommand):
                     rec.save()
                 except:
                     # Create a new row in VisitsAndRecom table
-                    obj = {"UserId": users[i].id, "ItemID": items[r[0]].ItemID}
+                    obj = {"UserId": users[i].id, "ItemID": items[r[0]].ItemID,"visits": 0 , "score": r[1]}
                     VisitsSer = serializers.VisitsAndRecomSerializer(data=obj)
                     if (VisitsSer.is_valid()):
                         VisitsSer.save()
