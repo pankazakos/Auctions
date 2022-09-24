@@ -224,7 +224,7 @@ class Command(BaseCommand):
                     models.VisitsAndRecom.objects.get(UserId_id=bitree["Bidder"], ItemID=bitree["ItemID"])
                 except:
                     vobj = {"UserId": bidder.id,
-                            "ItemID": itemSer.data["ItemID"]}
+                            "ItemID": itemSer.data["ItemID"], "visits": 1}
                     VisitsSer = serializers.VisitsAndRecomSerializer(data=vobj)
                     if (VisitsSer.is_valid()):
                         VisitsSer.save()

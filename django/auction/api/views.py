@@ -255,33 +255,28 @@ class SearchItems(APIView):
         # Get the recommended items
         if (str(request.user) != "AnonymousUser"):
 
-            recomqrset = models.VisitsAndRecom.objects.filter(UserId_id=request.user.id)
-            recomids = [recom.ItemID_id for recom in recomqrset]
-            recomitems = models.Item.objects.filter(ItemID__in=recomids)
+            recomqrset = models.VisitsAndRecom.objects.filter(UserId_id=request.user.id).order_by("-score")
+            # get top 3 to exclude the rows with 0 score which were created only to count the number of visits
+            recomids = [recom.ItemID_id for recom in recomqrset][:3]
         
-
         # Get the all the rest of the items
-        items = models.Item.objects.filter(Active=True).exclude(ItemID__in=recomids)
+        items = models.Item.objects.filter(Active=True)
 
         itperpage = 4
 
         name = request.GET.get('name')
         if (not name == "null"):
             items = items.filter(Name__icontains=name)
-            recomitems = recomitems.filter(Name__icontains=name)
 
         lprice = request.GET.get('lprice')
         rprice = request.GET.get('rprice')
         if (lprice not in ['', None, "null"] or rprice not in ['', None, "null"]):
             if (rprice == "" or rprice == "null"):
                 items = items.filter(Currently__gte=lprice)
-                recomitems = recomitems.filter(Currently_gte=lprice)
             elif (lprice == "" or lprice == "null"):
                 items = items.filter(Currently__lte=rprice)
-                recomitems = recomitems.filter(Currently_lte=rprice)
             else:
                 items = items.filter(Currently__range=[lprice, rprice])
-                recomitems = recomitems.filter(Currently_range=[lprice, rprice])
         
         categories = request.GET.get('cat')
         if(categories not in ['', None, "null"]):
@@ -293,15 +288,12 @@ class SearchItems(APIView):
             refcats = models.Category.objects.filter(Name__in=refnames)
             refids = [refcat.id for refcat in refcats]
             items = items.filter(categories__in=refids).distinct()
-            recomitems = recomitems.filter(categories__in=refids).distinct()
 
         location = request.GET.get('location')
         if (location not in ['', None, "null"]):
             users = models.CustomUser.objects.filter(Location__icontains=location)
             userids = [user.id for user in users]
             items = items.filter(Seller__in=userids)
-            recomitems = recomitems.filter(Seller__in=userids)
-        
 
         if (not request.GET.get('page') == 'null'):
             page = int(request.GET.get('page'))
@@ -309,10 +301,14 @@ class SearchItems(APIView):
             page = 1
         
         num = items.count()
-        r_num = recomitems.count()
         start = (page - 1) * itperpage
-        if (start  > num + r_num):
+        if (start  > num ):
             return Response("Page does not exist", status=status.HTTP_400_BAD_REQUEST)
+
+        # After all the filtering avoid duplicates from concatenation in finalitems
+        items = items.exclude(ItemID__in=recomids)
+
+        recomitems = [models.Item.objects.get(ItemID=id) for id in recomids]
 
         # concatenate the two querysets
         finalitems = list(chain(recomitems, items))
@@ -339,7 +335,7 @@ class SearchItems(APIView):
             lstitems.append(data)
         
 
-        return Response([{"items": lstitems}, {"count": ceil((num + r_num) / itperpage)}, {"page": page}], status=status.HTTP_200_OK)
+        return Response([{"items": lstitems}, {"count": ceil(num  / itperpage)}, {"page": page}], status=status.HTTP_200_OK)
 
 
 class getItem(APIView):
@@ -386,7 +382,7 @@ class getItem(APIView):
                 Visits.save()
             except:
                 # Create new row to store visits for this item and user
-                obj = {"UserId": request.user.id, "ItemID": item.ItemID}
+                obj = {"UserId": request.user.id, "ItemID": item.ItemID, "visits": 1}
                 VisitsSer = serializers.VisitsAndRecomSerializer(data=obj)
                 if(VisitsSer.is_valid()):
                     VisitsSer.save()
