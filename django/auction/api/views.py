@@ -250,7 +250,7 @@ class SearchItems(APIView):
         
         # Initialize to empty list for guests
         recomids = []
-        recomitems = models.Item.objects.none()
+        recomitems = []
 
         # Get the recommended items
         if (str(request.user) != "AnonymousUser"):
@@ -305,10 +305,14 @@ class SearchItems(APIView):
         if (start  > num ):
             return Response("Page does not exist", status=status.HTTP_400_BAD_REQUEST)
 
+        for id in recomids:
+            try:
+                recomitems.append(items.get(ItemID=id))
+            except:
+                pass
+        
         # After all the filtering avoid duplicates from concatenation in finalitems
         items = items.exclude(ItemID__in=recomids)
-
-        recomitems = [models.Item.objects.get(ItemID=id) for id in recomids]
 
         # concatenate the two querysets
         finalitems = list(chain(recomitems, items))
