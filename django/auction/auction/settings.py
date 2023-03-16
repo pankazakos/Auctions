@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -24,11 +25,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-rg8kjg09s5&3ur+p_1pwxa+*5)0^29#c&e-9lla=a=4g(*@fk#'
 
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -75,8 +79,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'auction.wsgi.application'
 
+WSGI_APPLICATION = 'auction.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -86,11 +90,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'auction',
         'USER': 'postgres',
-        'PASSWORD': '***REMOVED***',
+        'PASSWORD': env('DATABASE_PASS'),
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -112,7 +117,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "base.CustomUser"
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -124,7 +128,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -132,7 +135,8 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = BASE_DIR / 'django' / 'auction' / 'static'
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'react', 'auction', 'build', 'static')]
+STATICFILES_DIRS = [os.path.join(
+    BASE_DIR, 'react', 'auction', 'build', 'static')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
