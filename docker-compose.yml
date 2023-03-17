@@ -2,7 +2,7 @@ version: "3.9"
    
 services:
   db:
-    image: postgres
+    image: postgres:15.2
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
@@ -10,6 +10,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
   web:
+    image: auctions:latest
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
