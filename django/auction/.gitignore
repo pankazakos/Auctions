@@ -1,0 +1,5 @@
+gitignore
+auction/.env
+base/__pycache__
+auction/__pycache__
+api/__pycache__
