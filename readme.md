@@ -5,6 +5,8 @@ Auctions is a web app that allows users to create their own auctions for their i
 
 ## Setup
 
+If you want to use docker, please check out my [docker branch](https://github.com/pankazakos/Auctions/tree/docker).
+
 ### PostgreSQL
 First you need to create a database named 'auction' in PostgreSQL. Make sure you have installed [PostgreSQL](https://www.postgresql.org/).
 ```
@@ -17,6 +19,12 @@ Make sure `django/auction/auction/settings.py` has correct configuration at DATA
 At the root directory of the project run the following to install django dependencies.
 ``` 
 pip install -r requirements.txt
+```
+
+### Migrate database schema
+```
+cd django/auction
+python3 manage.py migrate
 ```
 
 ### Certificate (Skip if you do not need HTTPS)
