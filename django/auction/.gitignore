@@ -1,7 +1,6 @@
+__pycache__
 api/migrations
-api/__pycache__
-auction/__pycache__
 auction/static
 base/migrations
-base/__pycache__
 ebay-data/
+auction/.env
