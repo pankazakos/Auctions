@@ -1,0 +1,24 @@
+name: Build React App
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Install Dependencies
+        working-directory: react/auction
+        run: npm install
+      
+      - name: Build
+        working-directory: react/auction
+        run: npm run build
+      
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: react/path1/build
