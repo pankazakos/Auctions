@@ -30,12 +30,12 @@ docker-compose down
 
 ### Delete database
 ```
-sudo rm -rf data
+docker volume rm autions_postgres_data
 ```
 
 ### Remove image
 ```
 docker container prune
-docker image rm auctions:latest
+docker image rm auctions_web:latest
 docker image prune
 ```
